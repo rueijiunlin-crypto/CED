@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>導光板設計與製造 | CED Lab</title>
+    <title>導光元件設計與製造 | CED Lab</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700;900&display=swap" rel="stylesheet" />
@@ -14,33 +14,199 @@
 
     <main class="wrap hero">
       <div class="section-title">
-        <h2>導光板設計與製造</h2>
-      </div>
-      <div class="grid cols-2">
-        <div class="card">
-          <h3>研究介紹</h3>
-          <p>（樣板）這裡放完整的研究說明。建議包含：研究動機、核心方法、實驗裝置或流程、應用案例、與相關合作。</p>
-          <p>也可以分段列出：技術重點、使用工具或平台（例如 COMSOL、ANSYS、ROS2）、與近期成果。</p>
-        </div>
-        <div class="card">
-          <img
-            src="https://dummyimage.com/800x600/e2e8f0/64748b&text=Light+Guide+Plate"
-            alt="導光板設計與製造 示意圖"
-            style="width: 100%; border-radius: 12px"
-          />
-        </div>
+        <h2>導光元件設計與製造</h2>
       </div>
 
+      <!-- 研究概述 -->
+      <div class="card">
+        <h3>研究概述</h3>
+        <p>現有光學元件以平面顯示器之導光板、LED於車用警示照明的應用、手機LED閃光燈鏡片等為應用載具。在導光板製程開發方面，結合矽基蝕刻與LIGA-like製程電鑄，製作微射出與熱壓印之薄板取代(Stamper)，應用於模仁製作。</p>
+        <p>並結合光學模擬分析軟體(TracePro)，分析微特徵設計與分佈，使其具有軸向集光的特性，可免除增亮膜的使用，應用於LCD整合式導光板設計與製作，以期達到超薄、均齊與高輝度的背光模組開發。並將LED側入光的導光技術延伸至彎曲導光棒的設計，應用於車用照明如LED側入光導光條應用於尾燈的開發。並分析LED手機閃光燈所用之菲涅爾透鏡之設計，以提升其照明效率。</p>
+      </div>
+
+      <!-- 四大研究方向 -->
       <section style="padding-top: 24px">
         <div class="section-title">
-          <h2>近期成果 / 代表論文</h2>
+          <h2>主要研究方向</h2>
+        </div>
+
+        <!-- A. 整合式導光板設計與特徵分佈最佳化 -->
+        <div class="grid cols-2" style="margin-bottom: 24px">
+          <div class="card">
+            <h3>A. 整合式導光板設計與特徵分佈最佳化</h3>
+            <ul>
+              <li>以矽基蝕刻微電鑄所製作的45°轉向截頂角錐狀特徵，具有軸向特性，可減少使用光學稜鏡膜片，提高正面亮度，達到背光模組的薄形化與降低成本。</li>
+              <li>採用TracePro進行導光板光學模擬，分析微特徵間距對導光板輝度與均齊度的影響，並提出模糊最佳化進行特徵分布，以提升輝度與均齊性。</li>
+              <li>進行導光板成形試製，驗證設計與製程的可行性。</li>
+            </ul>
+            <h4>技術特色</h4>
+            <ul>
+              <li><strong>45°轉向截頂角錐狀特徵</strong>：具有軸向集光特性</li>
+              <li><strong>TracePro光學模擬</strong>：精確分析光學性能</li>
+              <li><strong>模糊最佳化</strong>：提升輝度與均齊性</li>
+              <li><strong>薄形化設計</strong>：減少增亮膜使用，降低成本</li>
+            </ul>
+          </div>
+          <div class="card">
+            <img
+              src="../image/lgp1.png"
+              alt="整合式導光板設計"
+              style="width: 100%; border-radius: 12px"
+            />
+            <p class="muted" style="text-align: center; margin-top: 10px; font-size: 14px;">
+              整合式導光板光學設計
+            </p>
+            <img
+              src="../image/lgp2.png"
+              alt="導光板特徵分佈最佳化"
+              style="width: 80%; border-radius: 12px; margin-top: 10px; display: block; margin-left: auto; margin-right: auto;"
+            />
+            <p class="muted" style="text-align: center; margin-top: 10px; font-size: 14px;">
+              微特徵分佈最佳化分析
+            </p>
+          </div>
+        </div>
+
+        <!-- B. 新型精微模仁薄板取代製程 -->
+        <div class="grid cols-2" style="margin-bottom: 24px">
+          <div class="card">
+            <h3>B. 新型精微模仁薄板取代製程</h3>
+            <ul>
+              <li>以非等向性蝕刻矽基板為微電鑄中介層，利用矽晶圓[111]面蝕刻停止的特性與深度蝕刻終止層設計，製作具高重複性與高精度的梯形微結構的電鑄起始層，以沉積金屬模仁薄板取代。</li>
+              <li>已成功的翻製出鎳基5μm V形溝槽與截頂角錐。</li>
+              <li>已成功射出3.5吋0.8mm導光板進行輝度均勻性量測。</li>
+            </ul>
+            <h4>製程優勢</h4>
+            <ul>
+              <li><strong>高精度</strong>：利用矽晶圓[111]面蝕刻停止特性</li>
+              <li><strong>高重複性</strong>：深度蝕刻終止層設計</li>
+              <li><strong>微結構製作</strong>：5μm V形溝槽與截頂角錐</li>
+              <li><strong>量產驗證</strong>：3.5吋導光板輝度均勻性測試</li>
+            </ul>
+          </div>
+          <div class="card">
+            <img
+              src="../image/lgp3.png"
+              alt="精微模仁製程"
+              style="width: 100%; border-radius: 12px"
+            />
+            <p class="muted" style="text-align: center; margin-top: 10px; font-size: 14px;">
+              矽基蝕刻微電鑄製程
+            </p>
+            <img
+              src="../image/lgp4.png"
+              alt="微結構製作成果"
+              style="width: 100%; border-radius: 12px; margin-top: 16px"
+            />
+            <p class="muted" style="text-align: center; margin-top: 10px; font-size: 14px;">
+              鎳基微結構製作成果
+            </p>
+          </div>
+        </div>
+
+        <!-- C. LED側入光導光條尾燈的設計 -->
+        <div class="grid cols-2" style="margin-bottom: 24px">
+          <div class="card">
+            <h3>C. LED側入光導光條尾燈的設計</h3>
+            <ul>
+              <li>大部分的車廠以LED取代傳統白熾燈做為車輛方向指示與尾燈設計，但傳統直下式LED車尾指向性強，造成後方汽車駕駛人的視線不良。且大面積的照明需LED數量多。</li>
+              <li>導光條應用於車尾燈與晝行燈設計可提供柔合光線與造型。</li>
+              <li>研究導光設計與特徵參數設計對出光角度的影響。</li>
+              <li>尾燈設計符合美國國家標準SAE規範。</li>
+            </ul>
+            <h4>應用優勢</h4>
+            <ul>
+              <li><strong>柔合光線</strong>：解決傳統LED指向性強的問題</li>
+              <li><strong>造型美觀</strong>：提供更好的外觀設計選擇</li>
+              <li><strong>節能高效</strong>：減少LED使用數量</li>
+              <li><strong>標準符合</strong>：符合SAE國際標準</li>
+            </ul>
+          </div>
+          <div class="card">
+            <img
+              src="../image/lgp5.png"
+              alt="LED導光條尾燈設計"
+              style="width: 100%; border-radius: 12px"
+            />
+            <p class="muted" style="text-align: center; margin-top: 10px; font-size: 14px;">
+              LED導光條尾燈設計
+            </p>
+            <img
+              src="../image/lgp6.png"
+              alt="導光條光學分析"
+              style="width: 100%; border-radius: 12px; margin-top: 16px"
+            />
+            <p class="muted" style="text-align: center; margin-top: 10px; font-size: 14px;">
+              導光條光學分析與測試
+            </p>
+          </div>
+        </div>
+
+        <!-- D. LED波形照明燈具的設計與開發 -->
+        <div class="grid cols-2">
+          <div class="card">
+            <h3>D. LED波形照明燈具的設計與開發</h3>
+            <ul>
+              <li>利用曲面導光板曲率及微結構設計達到蝠翼形的配光曲線。</li>
+              <li>跳脫平板導光元件刻板的外型，增添外觀設計美學與照明產品應用的創新性。</li>
+              <li>進行波形導光板的V-cut特徵設計與幾何參數設計，達到照度最佳化的要求。</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h4>創新特色</h4>
+            <ul>
+              <li><strong>蝠翼形配光</strong>：曲面導光板設計</li>
+              <li><strong>外觀美學</strong>：突破傳統平板設計</li>
+              <li><strong>V-cut特徵</strong>：幾何參數最佳化</li>
+              <li><strong>照度最佳化</strong>：滿足照明需求</li>
+            </ul>
+            
+          </div>
+        </div>
+      </section>
+
+      <!-- 相關研究計畫 -->
+      <section style="padding-top: 24px">
+        <div class="section-title">
+          <h2>相關研究計畫</h2>
         </div>
         <div class="card">
           <ul class="news">
-            <li><span>（樣板）2024 — 一篇代表性論文或專利，連結至期刊/會議。</span></li>
-            <li><span>（樣板）2023 — 另一篇成果，或專案合作說明。</span></li>
+            <li>
+              <span><strong>創新導光板模仁製程開發與一體化微特徵分佈研究</strong></span><br>
+              <span class="muted">NSC 96-98</span>
+            </li>
+            <li>
+              <span><strong>超薄高輝度之背光模組的製程技術研發</strong></span><br>
+              <span class="muted">經濟部學界科專計畫 98-99</span>
+            </li>
+            <li>
+              <span><strong>LED導光棒式尾燈設計與分布最佳化</strong></span><br>
+              <span class="muted">產學合作計畫 100</span>
+            </li>
+            <li>
+              <span><strong>LED側入光曲面導光條於車用照明元件的設計研究與應用</strong></span><br>
+              <span class="muted">NSC 101,102</span>
+            </li>
+            <li>
+              <span><strong>LED組合式導光元件於指示照明的光學設計與應用</strong></span><br>
+              <span class="muted">MOST 103</span>
+            </li>
+            <li>
+              <span><strong>創新波形導光板於室內照明之光學設計與應用</strong></span><br>
+              <span class="muted">MOST 104</span>
+            </li>
+            <li>
+              <span><strong>高對比單側出光導光板的光學設計與應用</strong></span><br>
+              <span class="muted">MOST 108</span>
+            </li>
           </ul>
         </div>
+      </section>
+
+      <!-- 返回按鈕 -->
+      <section style="padding-top: 24px; text-align: center;">
+        <a class="btn ghost" href="../areas.html">← 返回研究領域</a>
       </section>
     </main>
 
