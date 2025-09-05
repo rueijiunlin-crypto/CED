@@ -1,0 +1,10 @@
+/* 讓研究領域卡片可以整張可點擊（a.card） */
+a.card {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+}
+a.card:hover {
+  transform: translateY(-1px);
+  transition: transform 120ms ease;
+}

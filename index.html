@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>首頁 | CED Lab</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700;900&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div data-include="partials/header.html"></div>
+
+    <main class="wrap hero">
+      <div class="card" style="margin-bottom: 18px">
+        <div class="section-title">
+          <h2>最新消息</h2>
+          <a class="more" href="news.html">更多 →</a>
+        </div>
+        <ul class="news">
+          <li><time>2025/09/01</time> <span>本實驗室 CED 研究生徵才（112-1）。</span></li>
+          <li><time>2025/07/20</time> <span>恭賀論文獲期刊錄用。</span></li>
+          <li><time>2025/06/27</time> <span>參與產學合作計畫啟動。</span></li>
+        </ul>
+      </div>
+
+      <div class="banner">
+        <div class="banner-inner">
+          <img
+            src="https://images.unsplash.com/photo-1551836022-d5d88e9218df?q=80&w=1600&auto=format&fit=crop"
+            alt="CED banner"
+          />
+        </div>
+      </div>
+
+      
+      <!-- ===== 指導教授 ===== -->
+      <section class="wrap" style="padding-top: 24px">
+        <div class="section-title">
+          <h2>指導教授</h2>
+          <a class="more" href="pi.html">更多 →</a>
+        </div>
+        <div class="grid cols-2">
+          <div class="card">
+            <h3>余志成 教授</h3>
+            <p class="muted">國立高雄科技大學 機電工程系 · CED Lab</p>
+            <p>
+              研究專長：同步工程方法學、導光板設計與製造、鐵電薄膜微感測器、穩健最佳化、智慧服務型機器人。
+            </p>
+            <p>Email：<a href="mailto:jcyu@nkust.edu.tw">jcyu@nkust.edu.tw</a></p>
+            <p><a class="btn ghost" href="pi.html">查看完整介紹</a></p>
+          </div>
+          <div class="card">
+            <img
+              src="https://dummyimage.com/800x600/e2e8f0/64748b&text=PI+Photo"
+              alt="PI photo"
+              style="width: 100%; border-radius: 12px"
+            />
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== 研究領域 ===== -->
+        <section class="wrap" style="padding-top: 24px">
+          <div class="section-title">
+            <h2>研究領域</h2>
+            <a class="more" href="areas.html">全部 →</a>
+          </div>
+
+          <div class="grid cols-2">
+            <a class="card" href="areas/area-concurrent.html">
+              <h3>同步工程 / 概念設計</h3>
+             <p class="muted">跨域協同、知識管理與設計流程數位化。</p>
+           </a>
+
+            <a class="card" href="areas/area-lgp.html">
+              <h3>導光板設計與製造</h3>
+              <p class="muted">光學模擬、微結構陣列設計與量產製程。</p>
+            </a>
+         </div>
+        </section>
+
+
+
+      <section class="wrap" style="padding-top: 0">
+        <div class="section-title">
+          <h2>期刊論文</h2>
+          <a class="more" href="pubs.html">更多 →</a>
+        </div>
+        <div class="card">
+          <table>
+            <thead>
+              <tr>
+                <th>年份</th>
+                <th>作者</th>
+                <th>題目</th>
+                <th>期刊/會議</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>2024</td>
+                <td>Chih‑Cheng Yu et al.</td>
+                <td>Robust Optimization for LGP Micro‑structures</td>
+                <td>Optics Express</td>
+              </tr>
+              <tr>
+                <td>2023</td>
+                <td>Chih‑Cheng Yu et al.</td>
+                <td>Concurrent Engineering in Conceptual Design</td>
+                <td>Advanced Engineering Informatics</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+    </main>
+
+    <div data-include="partials/footer.html"></div>
+    <script src="include.js"></script>
+    <script src="script.js"></script>
+  </body>
+</html>

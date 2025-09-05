@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>研究領域 | CED Lab</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700;900&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="style.css" />
+    <style>
+      /* 局部補強：可直接刪除，若你已把以下規則加入 style.css */
+      a.card { display:block; text-decoration:none; color:inherit; }
+      a.card:hover { transform: translateY(-1px); transition: transform 120ms ease; }
+    </style>
+  </head>
+  <body>
+    <div data-include="partials/header.html"></div>
+
+    <main class="wrap hero">
+      <div class="section-title">
+        <h2>研究領域</h2>
+      </div>
+
+      <div class="grid cols-3">
+        <a class="card" href="areas/area-concurrent.html">
+          <h3>同步工程 / 概念設計</h3>
+          <p class="muted">跨域協同、知識管理與設計流程數位化。</p>
+        </a>
+
+        <a class="card" href="areas/area-lgp.html">
+          <h3>導光板設計與製造</h3>
+          <p class="muted">光學模擬、微結構陣列設計與量產製程。</p>
+        </a>
+
+        <a class="card" href="areas/area-mems.html">
+          <h3>鐵電薄膜微感測器</h3>
+          <p class="muted">MEMS 製程、封裝與量測驗證。</p>
+        </a>
+
+        <a class="card" href="areas/area-robust.html">
+          <h3>穩健最佳化</h3>
+          <p class="muted">不確定性建模、參數敏感度與設計空間探索。</p>
+        </a>
+
+        <a class="card" href="areas/area-robot.html">
+          <h3>智慧服務型機器人</h3>
+          <p class="muted">人機互動、視覺定位與自主導航。</p>
+        </a>
+      </div>
+    </main>
+
+    <div data-include="partials/footer.html"></div>
+
+    <script src="include.js"></script>
+    <script src="script.js"></script>
+  </body>
+</html>
