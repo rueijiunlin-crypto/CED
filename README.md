@@ -2,6 +2,19 @@
 
 純 HTML、CSS、JavaScript 網站，沒有後端、資料庫、登入或建置流程。
 
+## 程式碼排版
+
+網站程式碼統一使用兩個空白縮排，長程式碼換行；HTML 多屬性標籤與 CSS 屬性各自分行，JSON 陣列元素也逐行列出，方便閱讀與修改。
+
+`.editorconfig` 記錄編輯器縮排設定，`.prettierrc.json` 記錄自動排版規則。若已安裝 Node.js，可執行：
+
+```sh
+npx prettier@3.6.2 --check "**/*.{html,css,js,cjs,json,svg}"
+npx prettier@3.6.2 --write "**/*.{html,css,js,cjs,json,svg}"
+```
+
+`.prettierignore` 排除歷史內容備份，保留當時的原始程式碼。
+
 ## 本機啟動
 
 在 Repository 根目錄執行：

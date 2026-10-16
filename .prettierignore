@@ -1,0 +1,7 @@
+# Historical snapshots preserve the original source for reference.
+docs/original-members.md
+docs/original-research/
+
+# Binary assets and generated files.
+image/*.png
+node_modules/

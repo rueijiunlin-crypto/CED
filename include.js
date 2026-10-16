@@ -1,5 +1,5 @@
 // Shared partial loader. Expose readiness for features that depend on the header/footer.
-window.includesReady = new Promise(resolve => {
+window.includesReady = new Promise((resolve) => {
   document.addEventListener('DOMContentLoaded', async () => {
     for (const el of document.querySelectorAll('[data-include]')) {
       const path = el.getAttribute('data-include');
@@ -14,7 +14,7 @@ window.includesReady = new Promise(resolve => {
     }
     const isInSubdir = /\/areas\//.test(location.pathname);
     const prefix = window.ROOT_PREFIX || (isInSubdir ? '../' : '');
-    document.querySelectorAll('a[data-link]').forEach(a => {
+    document.querySelectorAll('a[data-link]').forEach((a) => {
       a.setAttribute('href', prefix + a.getAttribute('data-link'));
     });
     resolve();

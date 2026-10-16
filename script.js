@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (langBtn) {
     langBtn.addEventListener('click', (e) => {
       e.preventDefault();
-      lang = (lang === 'zh') ? 'en' : 'zh';
+      lang = lang === 'zh' ? 'en' : 'zh';
       document.querySelectorAll('[data-i18n-zh]').forEach((el) => {
         el.textContent = el.getAttribute(`data-i18n-${lang}`) || el.textContent;
       });
