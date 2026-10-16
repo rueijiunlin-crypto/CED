@@ -1,7 +1,7 @@
 [
   {
     "id": "master-1",
-    "name": "林冠廷",
+    "name": "研究生範例 A",
     "degree": "master",
     "status": "current",
     "grade": "M2",
@@ -12,7 +12,7 @@
   },
   {
     "id": "master-2",
-    "name": "吳佩珊",
+    "name": "研究生範例 B",
     "degree": "master",
     "status": "current",
     "grade": "M1",
@@ -24,7 +24,7 @@
   },
   {
     "id": "master-3",
-    "name": "黃柏任",
+    "name": "研究生範例 C",
     "degree": "master",
     "status": "current",
     "grade": "M2",
@@ -35,7 +35,7 @@
   },
   {
     "id": "master-4",
-    "name": "周怡安",
+    "name": "研究生範例 D",
     "degree": "master",
     "status": "current",
     "grade": "M1",
@@ -46,7 +46,7 @@
   },
   {
     "id": "master-5",
-    "name": "楊士凱",
+    "name": "研究生範例 E",
     "degree": "master",
     "status": "current",
     "grade": "M1",

@@ -24,6 +24,9 @@ try {
     fillGrid(section('masters'), model.members.filter(m => m.status === 'current' && m.degree === 'master'), m => memberCard(m, model), 'member-grid');
     fillGrid(section('groups'), model.groups.filter(g => g.status === 'current'), g => groupCard(g, model));
     renderAlumni(section('alumni'), model);
+  } else if (main.dataset.directory === 'research-detail') {
+    const topic = model.researchById.get(main.dataset.researchId);
+    fillGrid(section('detail'), topic ? [topic] : [], r => researchCard({ ...r, detailUrl: undefined }, model));
   } else {
     for (const category of ['masters', 'undergraduate', 'historical']) {
       fillGrid(section(category), model.research.filter(r => r.category === category), r => researchCard(r, model));

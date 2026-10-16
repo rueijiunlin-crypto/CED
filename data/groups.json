@@ -1,10 +1,10 @@
 [
   {
     "id": "group-1",
-    "name": "機台整合團隊",
+    "name": "專題團隊範例 A",
     "memberNames": [
-      "張庭瑋",
-      "鄭羽安"
+      "組員範例 1-1",
+      "組員範例 1-2"
     ],
     "researchIds": [
       "interface"
@@ -14,9 +14,9 @@
   },
   {
     "id": "group-2",
-    "name": "永續設計團隊",
+    "name": "專題團隊範例 B",
     "memberNames": [
-      "許博翔"
+      "組員範例 2-1"
     ],
     "researchIds": [
       "carbon"
@@ -26,10 +26,10 @@
   },
   {
     "id": "group-3",
-    "name": "智慧農業團隊",
+    "name": "專題團隊範例 C",
     "memberNames": [
-      "劉采庭",
-      "蔡宇庭"
+      "組員範例 3-1",
+      "組員範例 3-2"
     ],
     "researchIds": [
       "agriculture"

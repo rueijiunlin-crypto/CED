@@ -1,100 +1,96 @@
 [
   {
     "id": "concurrent",
-    "title": "同步工程 / 概念設計",
-    "summary": "跨域協同、知識管理與設計流程數位化。",
+    "title": "歷年研究範例 A",
+    "summary": "此處填寫過往研究或已完成專題的簡介。目前僅展示資料結構，不代表實際研究紀錄。",
     "category": "historical",
     "detailUrl": "areas/area-concurrent.html",
-    "example": true,
-    "source": "原網站研究領域模板"
+    "example": true
   },
   {
     "id": "lgp",
-    "title": "導光板設計與製造",
-    "summary": "光學模擬、微結構陣列設計與量產製程。",
+    "title": "碩士研究範例 A",
+    "summary": "此處填寫研究目的、研究方法與預期應用。本段僅為版面示範，尚未套用正式研究內容。",
     "category": "masters",
     "detailUrl": "areas/area-lgp.html",
     "example": true,
-    "source": "原網站研究領域模板",
-    "image": "image/lgp1.png",
     "technologies": [
-      "TracePro",
-      "微結構設計"
+      "示範技術 A",
+      "示範工具 B"
     ]
   },
   {
     "id": "mems",
-    "title": "鐵電薄膜微感測器",
-    "summary": "MEMS 製程、封裝與量測驗證。",
+    "title": "歷年研究範例 B",
+    "summary": "此處填寫過往研究或已完成專題的簡介。目前僅展示資料結構，不代表實際研究紀錄。",
     "category": "historical",
     "detailUrl": "areas/area-mems.html",
-    "example": true,
-    "source": "原網站研究領域模板"
-  },
-  {
-    "id": "robust",
-    "title": "穩健最佳化",
-    "summary": "不確定性建模、參數敏感度與設計空間探索。",
-    "category": "historical",
-    "detailUrl": "areas/area-robust.html",
-    "example": true,
-    "source": "原網站研究領域模板"
-  },
-  {
-    "id": "robot",
-    "title": "智慧服務型機器人",
-    "summary": "人機互動、視覺定位與自主導航。",
-    "category": "masters",
-    "detailUrl": "areas/area-robot.html",
-    "example": true,
-    "source": "原網站研究領域模板"
-  },
-  {
-    "id": "microsensor",
-    "title": "鋯鈦酸鉛薄膜於微感測元件之設計與製作",
-    "summary": "PZT薄膜微感測器設計、製造與最佳化。",
-    "category": "historical",
-    "detailUrl": "areas/area-microsensor.html",
-    "example": true,
-    "source": "原網站研究領域模板",
-    "image": "image/microsensor4.png",
-    "technologies": [
-      "Sol-Gel",
-      "PZT 薄膜"
-    ]
-  },
-  {
-    "id": "diagnostics",
-    "title": "設備智能診斷",
-    "summary": "以設備訊號觀察運作狀態，練習特徵分析與異常辨識，協助理解設備維護需求。",
-    "category": "masters",
     "example": true
   },
   {
+    "id": "robust",
+    "title": "歷年研究範例 C",
+    "summary": "此處填寫過往研究或已完成專題的簡介。目前僅展示資料結構，不代表實際研究紀錄。",
+    "category": "historical",
+    "detailUrl": "areas/area-robust.html",
+    "example": true
+  },
+  {
+    "id": "robot",
+    "title": "碩士研究範例 B",
+    "summary": "此處填寫研究目的、研究方法與預期應用。本段僅為版面示範，尚未套用正式研究內容。",
+    "category": "masters",
+    "detailUrl": "areas/area-robot.html",
+    "example": true,
+    "technologies": [
+      "示範技術 A",
+      "示範工具 B"
+    ]
+  },
+  {
+    "id": "microsensor",
+    "title": "歷年研究範例 D",
+    "summary": "此處填寫過往研究或已完成專題的簡介。目前僅展示資料結構，不代表實際研究紀錄。",
+    "category": "historical",
+    "detailUrl": "areas/area-microsensor.html",
+    "example": true
+  },
+  {
+    "id": "diagnostics",
+    "title": "碩士研究範例 C",
+    "summary": "此處填寫研究目的、研究方法與預期應用。本段僅為版面示範，尚未套用正式研究內容。",
+    "category": "masters",
+    "example": true,
+    "technologies": [
+      "示範技術 A",
+      "示範工具 B"
+    ]
+  },
+  {
     "id": "interface",
-    "title": "機台整合與介面設計",
-    "summary": "以操作介面串聯機台資訊，探索狀態顯示與操作流程的整合方式。",
+    "title": "大學部專題範例 A",
+    "summary": "此處填寫團隊的專題目標、實作內容與成果展示方式。本段僅為示範，並非實際專題。",
     "category": "undergraduate",
     "example": true
   },
   {
     "id": "carbon",
-    "title": "碳足跡與生命週期評估",
-    "summary": "透過產品生命週期盤查，練習比較材料與製程選擇對環境的影響。",
+    "title": "大學部專題範例 B",
+    "summary": "此處填寫團隊的專題目標、實作內容與成果展示方式。本段僅為示範，並非實際專題。",
     "category": "undergraduate",
     "example": true
   },
   {
     "id": "agriculture",
-    "title": "智慧農業機器人",
-    "summary": "以農業場域為情境，探索感測、移動與任務規劃的整合。",
+    "title": "大學部專題範例 C",
+    "summary": "此處填寫團隊的專題目標、實作內容與成果展示方式。本段僅為示範，並非實際專題。",
     "category": "undergraduate",
     "example": true
   },
   {
     "id": "completed-demo",
-    "title": "感測資料視覺化專題（範例）",
-    "summary": "已完成專題的展示範例：整理感測資料，製作易讀的狀態圖表。",
+    "title": "歷年研究範例 E",
+    "summary": "此處填寫過往研究或已完成專題的簡介。目前僅展示資料結構，不代表實際研究紀錄。",
     "category": "historical",
     "example": true,
     "year": 2023
