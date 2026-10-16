@@ -8,6 +8,9 @@ const members = read('members'), groups = read('groups'), research = read('resea
 for (const rows of [members, groups, research]) assert.equal(new Set(rows.map(r => r.id)).size, rows.length);
 for (const row of [...members, ...groups]) for (const id of row.researchIds || []) assert(research.some(r => r.id === id));
 for (const topic of research) if (topic.detailUrl) assert(fs.existsSync(path.join(root, topic.detailUrl)));
+for (const member of members) { assert(member.example); assert(member.name.includes('範例')); }
+for (const group of groups) { assert(group.name.includes('範例')); assert(group.memberNames.every(n => n.includes('範例'))); }
+for (const topic of research) { assert(topic.example); assert(topic.title.includes('範例')); assert(!topic.image); }
 (async () => {
  const browser = await chromium.launch({headless:true, ...(process.env.CHROMIUM_PATH ? {executablePath: process.env.CHROMIUM_PATH} : {})});
  const page = await browser.newPage();
@@ -64,6 +67,14 @@ for (const topic of research) if (topic.detailUrl) assert(fs.existsSync(path.joi
   await open(file);
   const href = await page.locator('header a[data-link="members.html"]').getAttribute('href');
   assert.equal(href,file.startsWith('areas/') ? '../members.html' : 'members.html');
+  const topic = research.find(r => r.detailUrl === file);
+  if (topic) {
+   await page.waitForFunction(id => document.getElementById(`research-${id}`),topic.id);
+   assert.equal(await page.locator('main h3').textContent(),topic.title);
+   assert.equal(await page.locator('main img').count(),0);
+   assert.equal(await page.locator('main a[href="../areas.html#research-' + topic.id + '"]').count(),1);
+   assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+  }
  }
  // Missing portrait, optional image, and a dangling research reference.
  await page.route('**/data/members.json', route => {

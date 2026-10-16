@@ -28,11 +28,13 @@ python3 -m http.server 8000
 
 `js/data-service.js` 負責讀取與基本驗證，回傳 members、groups、research 與索引；未來改接 API 可維持這個介面。`js/directory-render.js` 負責 DOM 卡片，`js/directory.js` 負責分類、載入狀態與錨點定位。資料文字使用 textContent，URL 限站內。資料錯誤顯示重試；遺失研究 ID 顯示待補並略過無效連結。
 
-`directory.css` 僅套用兩個新頁面；原 style.css、partials/header.html、partials/footer.html 與 6 個研究詳細頁保持原有內容。include.js 提供 includesReady，script.js 在頁尾載入後設定版權年份，避免非同步時序問題。
+`directory.css` 套用成員、研究總覽與研究介紹模板；style.css、partials/header.html、partials/footer.html 保持原有內容。include.js 提供 includesReady，script.js 在頁尾載入後設定版權年份，避免非同步時序問題。
 
 ## 原始內容保留
 
-改版前成員 HTML 原樣記錄於 `docs/original-members.md`，含舊博士生範例；不將其誤當成在籍或畢業紀錄。原研究總覽六筆名稱、簡介與詳細頁連結保留於 research.json；原詳細頁與圖片完整保留。既有模板的分類與新關聯僅為展示，歷年區不代表已查證完成的研究。
+目前所有成員姓名、團隊、研究主題與技術均使用明顯的範例文字；不展示原研究圖片、計畫或成果。研究介紹頁也從 JSON 產生模板與相關成員，原有 ID 與頁面路徑保留以維持連結。
+
+改版前成員 HTML 原樣記錄於 `docs/original-members.md`。先前研究資料與六個詳細頁原文備份於 `docs/original-research/`，只供歷史參考，不由展示頁載入；原圖片檔仍保留。年度、學位與關聯僅用於測試，不代表實際紀錄。
 
 ## 驗證
 

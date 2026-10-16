@@ -99,7 +99,7 @@ export function researchCard(topic, model) {
   }
   if (people.children.length) el.append(node('p', 'field-label', '相關研究人員 / 團隊'), people);
   const detail = localUrl(topic.detailUrl);
-  if (detail) el.append(link('查看原有研究詳細介紹 →', detail));
+  if (detail) el.append(link('查看研究介紹模板 →', detail));
   return el;
 }
 export function fillGrid(container, rows, render, className = '') {
