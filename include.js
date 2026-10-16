@@ -1,24 +1,22 @@
-// HTML include loader + smart link resolver
-document.addEventListener('DOMContentLoaded', async () => {
-  const includes = document.querySelectorAll('[data-include]');
-  for (const el of includes) {
-    const path = el.getAttribute('data-include');
-    try {
-      const res = await fetch(path);
-      const html = await res.text();
-      el.outerHTML = html;
-    } catch (e) {
-      el.innerHTML = `<!-- include failed: ${path} -->`;
+// Shared partial loader. Expose readiness for features that depend on the header/footer.
+window.includesReady = new Promise(resolve => {
+  document.addEventListener('DOMContentLoaded', async () => {
+    for (const el of document.querySelectorAll('[data-include]')) {
+      const path = el.getAttribute('data-include');
+      try {
+        const res = await fetch(path);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        el.outerHTML = await res.text();
+      } catch (error) {
+        el.textContent = '共用區塊暫時無法載入，請重新整理頁面。';
+        console.error(`Include failed: ${path}`, error);
+      }
     }
-  }
-
-  // After header/footer are injected, resolve nav links
-  const isInSubdir = /\/areas\//.test(location.pathname);
-  const ROOT_PREFIX = window.ROOT_PREFIX || (isInSubdir ? '../' : '');
-
-  // Convert data-link -> href with correct prefix
-  document.querySelectorAll('a[data-link]').forEach(a => {
-    const target = a.getAttribute('data-link');
-    a.setAttribute('href', ROOT_PREFIX + target);
+    const isInSubdir = /\/areas\//.test(location.pathname);
+    const prefix = window.ROOT_PREFIX || (isInSubdir ? '../' : '');
+    document.querySelectorAll('a[data-link]').forEach(a => {
+      a.setAttribute('href', prefix + a.getAttribute('data-link'));
+    });
+    resolve();
   });
 });

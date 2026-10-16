@@ -1,0 +1,40 @@
+[
+  {
+    "id": "group-1",
+    "name": "機台整合團隊",
+    "memberNames": [
+      "張庭瑋",
+      "鄭羽安"
+    ],
+    "researchIds": [
+      "interface"
+    ],
+    "status": "current",
+    "example": true
+  },
+  {
+    "id": "group-2",
+    "name": "永續設計團隊",
+    "memberNames": [
+      "許博翔"
+    ],
+    "researchIds": [
+      "carbon"
+    ],
+    "status": "current",
+    "example": true
+  },
+  {
+    "id": "group-3",
+    "name": "智慧農業團隊",
+    "memberNames": [
+      "劉采庭",
+      "蔡宇庭"
+    ],
+    "researchIds": [
+      "agriculture"
+    ],
+    "status": "current",
+    "example": true
+  }
+]

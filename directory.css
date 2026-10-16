@@ -1,0 +1,44 @@
+/* Scoped to the two directory pages; global theme and existing pages stay shared. */
+.directory { padding: 36px 20px; }
+.directory-heading { margin-bottom: 24px; }
+.directory h1 { font-size: clamp(28px, 4vw, 40px); margin: 4px 0 12px; }
+.directory h2 { font-size: clamp(22px, 2.4vw, 30px); margin: 0; }
+.directory .eyebrow { color: var(--brand-700); font-size: 12px; letter-spacing: .12em; font-weight: 700; }
+.directory .sample-notice { padding: 14px 18px; background: var(--brand-50); border-left: 3px solid var(--brand-600); border-radius: 0 10px 10px 0; color: var(--muted); font-size: 14px; }
+.directory .section-nav { display: flex; flex-wrap: wrap; gap: 10px; margin: 24px 0; }
+.directory a { color: var(--brand-700); text-underline-offset: 4px; overflow-wrap: anywhere; }
+.directory .section-nav a { padding: 8px 14px; border: 1px solid #cbd5e1; border-radius: 10px; text-decoration: none; }
+.directory .section-nav a:hover { background: var(--brand-50); }
+.directory-section { margin-top: 40px; }
+.directory-grid { display: grid; align-items: start; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+.directory-grid.member-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.directory-card { min-width: 0; overflow-wrap: anywhere; transition: box-shadow 140ms ease; }
+.directory-card:hover { box-shadow: var(--shadow); }
+.directory-card h3 { font-size: 20px; line-height: 1.5; margin: 12px 0; }
+.directory-card p { margin: 10px 0; }
+.directory .badge { display: inline-block; background: #e0f2fe; color: #075985; border-radius: 5px; padding: 2px 8px; font-size: 12px; }
+.directory .member-meta { color: var(--brand-700); font-size: 14px; font-weight: 700; }
+.directory .field-label { font-size: 13px; font-weight: 500; color: var(--muted); margin-top: 20px; }
+.directory .member-photo, .directory .research-photo { width: 100%; aspect-ratio: 4 / 3; display: block; border-radius: 10px; margin-bottom: 16px; background: var(--brand-50); }
+.directory .member-photo { object-fit: cover; }
+.directory .research-photo { object-fit: contain; }
+.directory .research-links, .directory .people-links { padding-left: 20px; margin: 10px 0; }
+.directory li + li { margin-top: 6px; }
+.directory .technology-tags { display: flex; flex-wrap: wrap; list-style: none; padding: 0; gap: 8px; }
+.directory .technology-tags li { background: #e2e8f0; border-radius: 5px; padding: 3px 8px; margin: 0; font-size: 13px; }
+.directory .alumni-year { margin: 16px 0; border-top: 1px solid #cbd5e1; }
+.directory .alumni-year summary { cursor: pointer; padding: 16px 0; font-weight: 700; color: var(--brand-700); }
+.directory [id] { scroll-margin-top: 100px; }
+.directory .directory-card:target { outline: 2px solid var(--brand-600); outline-offset: 4px; }
+.directory :focus-visible { outline: 3px solid var(--brand-600); outline-offset: 4px; }
+.directory .empty-state { color: var(--muted); }
+@media (max-width: 800px) {
+  .directory-grid.member-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 540px) {
+  .directory-grid, .directory-grid.member-grid { grid-template-columns: 1fr; }
+  .directory { padding-top: 24px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .directory-card { transition: none; }
+}
