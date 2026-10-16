@@ -1,5 +1,6 @@
 // 全站共用腳本
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+  await window.includesReady;
   // 版權年份
   const y = document.getElementById('y');
   if (y) y.textContent = new Date().getFullYear();

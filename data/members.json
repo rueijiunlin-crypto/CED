@@ -1,0 +1,89 @@
+[
+  {
+    "id": "master-1",
+    "name": "林冠廷",
+    "degree": "master",
+    "status": "current",
+    "grade": "M2",
+    "researchIds": [
+      "lgp"
+    ],
+    "example": true
+  },
+  {
+    "id": "master-2",
+    "name": "吳佩珊",
+    "degree": "master",
+    "status": "current",
+    "grade": "M1",
+    "researchIds": [
+      "lgp",
+      "diagnostics"
+    ],
+    "example": true
+  },
+  {
+    "id": "master-3",
+    "name": "黃柏任",
+    "degree": "master",
+    "status": "current",
+    "grade": "M2",
+    "researchIds": [
+      "diagnostics"
+    ],
+    "example": true
+  },
+  {
+    "id": "master-4",
+    "name": "周怡安",
+    "degree": "master",
+    "status": "current",
+    "grade": "M1",
+    "researchIds": [
+      "robot"
+    ],
+    "example": true
+  },
+  {
+    "id": "master-5",
+    "name": "楊士凱",
+    "degree": "master",
+    "status": "current",
+    "grade": "M1",
+    "researchIds": [
+      "robot"
+    ],
+    "example": true
+  },
+  {
+    "id": "alumni-demo-1",
+    "name": "畢業成員範例 A",
+    "degree": "master",
+    "status": "alumni",
+    "graduationYear": 2025,
+    "researchIds": [
+      "concurrent"
+    ],
+    "photo": "image/member-placeholder.svg",
+    "example": true
+  },
+  {
+    "id": "alumni-demo-2",
+    "name": "畢業成員範例 B",
+    "degree": "phd",
+    "status": "alumni",
+    "graduationYear": 2024,
+    "researchIds": [
+      "robust"
+    ],
+    "example": true
+  },
+  {
+    "id": "alumni-demo-3",
+    "name": "畢業成員範例 C",
+    "degree": "master",
+    "status": "alumni",
+    "graduationYear": 2024,
+    "example": true
+  }
+]
