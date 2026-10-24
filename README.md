@@ -31,11 +31,12 @@ python3 -m http.server 8000
 
 - `data/members.json`：成員唯一 `id`、`name`、`degree`（`master` / `phd`）、`status`（`current` / `alumni`）、選填 `grade`、`photo`、西元整數 `graduationYear`、`researchIds`、`example`。
 - `data/groups.json`：團隊唯一 `id`、`name`、`memberNames`、`status`、`researchIds`，選填 `image`、`example`。新增或移除組別只須修改資料。
-- `data/research.json`：研究唯一 `id`、`title`、`summary`、`category`（`masters` / `undergraduate` / `historical`），選填 `technologies`、`image`、`year`、`detailUrl`、`example`、`source`。
+- `data/research.json`：研究唯一 `id`、`title`、`summary`、`category`。總覽目前只顯示 `current`（進行中的研究）與 `historical`（歷屆研究）；舊有 `masters` / `undergraduate` 範例保留，供成員頁連結使用。
+- 研究的選填欄位包含 `field`（應用領域）、`introduction`、`sections`（介紹段落）、`technologies`、`image`、`year`、`detailUrl`、`example`、`source`。`sections` 每段包含 `title`，並可填入文字陣列 `paragraphs` 或重點陣列 `items`。
 - ID 使用小寫英文字開頭、英數與連字號，集合內不得重複；使用後盡量保留以維持連結。
 - `researchIds` 是多對多關聯的唯一維護位置。研究頁反查成員與團隊，不另存姓名、研究簡介或團隊成員副本。團隊名稱與組員只維護於 groups.json。
 - 圖片與詳細頁 URL 為相對 Repository 根目錄的站內路徑。人物使用 4:3 裁切預設圖；研究圖片以 contain 保留完整內容，遺失則移除圖片。無照片 Alumni 直接呈現文字卡片。
-- `example: true` 會顯示範例標籤。全部現有資料皆為模板；正式資料確認後再更新欄位與標籤。
+- `example: true` 會顯示範例標籤。現行三項研究使用實際主題名稱；歷屆研究、成員及團隊目前仍是範例。未提供的日期、技術規格、照片與成果不會補成正式資料。
 - 畢業年度由新到舊，未填年度列在最後；不強制補研究或介紹頁。博士資料結構保留，但目前在籍區僅顯示碩士。
 - 團隊目前顯示 `status: "current"` 的資料；過往專題可收錄於 `historical` 研究分類，無已知相關人員時不必建立團隊關聯。
 
@@ -45,7 +46,13 @@ python3 -m http.server 8000
 
 ## 原始內容保留
 
-目前所有成員姓名、團隊、研究主題與技術均使用明顯的範例文字；不展示原研究圖片、計畫或成果。研究介紹頁也從 JSON 產生模板與相關成員，原有 ID 與頁面路徑保留以維持連結。
+成員、團隊及歷屆研究仍維持範例。現行研究已改為「疏苗除草機器人」「垃圾收集海漂船」「割草機器人」，並各有一個獨立頁面。研究介紹從同一份 JSON 產生，名稱與三段介紹可直接在資料檔更新。
+
+目前三項研究的介紹依使用者提供的名稱撰寫，以研究目的、應用情境與關注議題為初稿；尚未提供的實作技術、進度、成果與規格不作事實陳述。沒有將範例成員分派到正式研究，待確認實際人員後才設定 `researchIds`。
+
+研究總覽使用 `research.css` 的單欄橫向卡片，整張卡片可點入介紹。未提供日期時以狀態與應用領域標示。首頁的現行研究入口同步連到 `#current`。
+
+新研究介紹頁為 `areas/area-thinning-weeding-robot.html`、`areas/area-marine-trash-collection-vessel.html`、`areas/area-mowing-robot.html`。早期範例的 ID、資料與路徑繼續保留；沒有專頁的舊範例由 `areas/research.html?id=研究ID` 顯示。舊總覽的 `#masters` / `#undergraduate` 錨點導向進行中區塊，舊範例主題錨點導向其介紹頁。
 
 改版前成員 HTML 原樣記錄於 `docs/original-members.md`。先前研究資料與六個詳細頁原文備份於 `docs/original-research/`，只供歷史參考，不由展示頁載入；原圖片檔仍保留。年度、學位與關聯僅用於測試，不代表實際紀錄。
 

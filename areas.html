@@ -28,28 +28,28 @@
       rel="stylesheet"
       href="directory.css"
     />
+    <link
+      rel="stylesheet"
+      href="research.css"
+    />
   </head>
   <body>
     <div data-include="partials/header.html"></div>
     <main
-      class="wrap hero directory"
+      class="wrap hero directory research-page"
       data-directory="areas"
     >
       <div class="directory-heading">
-        <p class="eyebrow">CED LAB · PEOPLE &amp; RESEARCH</p>
+        <p class="eyebrow">CED LAB · RESEARCH</p>
         <h1>研究領域</h1>
-        <p class="muted">碩士研究、大學部專題與歷年研究的展示模板。</p>
+        <p class="muted">以實驗室為核心，探索目前進行中的研究與歷屆研究。</p>
       </div>
-      <p class="sample-notice">
-        範例資料展示｜姓名、年級、學位、年度與研究關聯僅供模板測試，並非正式名單或成果。目前全部使用示範文字與預設圖片，尚未套用正式內容。
-      </p>
       <nav
         class="section-nav"
         aria-label="頁面區塊"
       >
-        <a href="#masters">碩士研究</a
-        ><a href="#undergraduate">大學部專題研究</a
-        ><a href="#historical">歷年研究</a>
+        <a href="#current">進行中的研究</a>
+        <a href="#historical">歷屆研究</a>
       </nav>
       <p
         id="directory-status"
@@ -60,28 +60,21 @@
       <noscript><p>請啟用 JavaScript 以查看成員與研究資料。</p></noscript>
       <section
         class="directory-section"
-        id="masters"
-        aria-labelledby="masters-title"
+        id="current"
+        aria-labelledby="current-title"
       >
-        <h2 id="masters-title">碩士研究</h2>
-        <p class="muted">研究目的、主要技術與參與成員。</p>
-        <div data-section="masters"></div>
-      </section>
-      <section
-        class="directory-section"
-        id="undergraduate"
-        aria-labelledby="undergraduate-title"
-      >
-        <h2 id="undergraduate-title">大學部專題研究</h2>
-        <p class="muted">團隊專題與研究成員頁面共用同一份資料。</p>
-        <div data-section="undergraduate"></div>
+        <h2 id="current-title">進行中的研究</h2>
+        <p class="muted">
+          從田間作業、水域清理到綠地維護，發展回應實際需求的研究方向。
+        </p>
+        <div data-section="current"></div>
       </section>
       <section
         class="directory-section"
         id="historical"
         aria-labelledby="historical-title"
       >
-        <h2 id="historical-title">歷年研究</h2>
+        <h2 id="historical-title">歷屆研究</h2>
         <p class="muted">歷年研究卡片示範；研究內容與年度均非實際紀錄。</p>
         <div data-section="historical"></div>
       </section>

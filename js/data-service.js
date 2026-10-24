@@ -32,6 +32,24 @@ async function fetchCollection(name) {
     }
     if (typeof row[name === 'research' ? 'title' : 'name'] !== 'string')
       throw new Error(`${name}: missing title/name`);
+    if (name === 'research' && row.sections !== undefined) {
+      const textList = (values) =>
+        values === undefined ||
+        (Array.isArray(values) &&
+          values.every((value) => typeof value === 'string'));
+      if (
+        !Array.isArray(row.sections) ||
+        row.sections.some(
+          (section) =>
+            !section ||
+            typeof section.title !== 'string' ||
+            !textList(section.paragraphs) ||
+            !textList(section.items),
+        )
+      ) {
+        throw new Error('research: invalid detail sections');
+      }
+    }
   }
   return rows;
 }

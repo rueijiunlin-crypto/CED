@@ -23,9 +23,28 @@ for (const group of groups) {
   assert(group.name.includes('範例'));
   assert(group.memberNames.every((n) => n.includes('範例')));
 }
+const currentResearch = research.filter(
+  (topic) => topic.category === 'current',
+);
+assert.deepEqual(
+  currentResearch.map((topic) => topic.title),
+  ['疏苗除草機器人', '垃圾收集海漂船', '割草機器人'],
+);
 for (const topic of research) {
-  assert(topic.example);
-  assert(topic.title.includes('範例'));
+  if (topic.category === 'current') {
+    assert.equal(topic.example, false);
+    assert(topic.detailUrl);
+    assert(topic.sections.length >= 3);
+    // Sample people must not be presented as participants in real projects.
+    assert(
+      ![...members, ...groups].some((row) =>
+        (row.researchIds || []).includes(topic.id),
+      ),
+    );
+  } else {
+    assert(topic.example);
+    assert(topic.title.includes('範例'));
+  }
   assert(!topic.image);
 }
 (async () => {
@@ -40,13 +59,13 @@ for (const topic of research) {
   page.on('pageerror', (e) => errors.push(e.message));
   // External decorative assets are irrelevant to local functional verification.
   await page.route(/https:\/\//, (route) => route.abort());
-  const base = 'http://127.0.0.1:8000/';
+  const base = process.env.CED_TEST_BASE || 'http://127.0.0.1:8000/';
   async function open(file) {
     await page.goto(base + file);
     await page.waitForFunction(
       () => document.querySelector('footer #y')?.textContent.length === 4,
     );
-    if (/^(members|areas)\.html/.test(file))
+    if (await page.locator('[data-directory]').count())
       await page.waitForFunction(
         () => document.querySelector('#directory-status')?.textContent === '',
       );
@@ -77,6 +96,32 @@ for (const topic of research) {
             (el) => getComputedStyle(el).gridTemplateColumns.split(' ').length,
           );
         assert.equal(cols, width > 800 ? 3 : width > 540 ? 2 : 1);
+      }
+      if (file === 'areas.html') {
+        assert.deepEqual(
+          await page.locator('main > section > h2').allTextContents(),
+          ['進行中的研究', '歷屆研究'],
+        );
+        assert.equal(await page.locator('#current article').count(), 3);
+        assert.equal(
+          await page.locator('#historical article').count(),
+          research.filter((topic) => topic.category === 'historical').length,
+        );
+        assert.equal(
+          await page.locator('#current .badge, main > .sample-notice').count(),
+          0,
+        );
+        assert.equal(await page.locator('#current .people-links').count(), 0);
+        assert.equal(
+          await page
+            .locator('.research-list')
+            .first()
+            .evaluate(
+              (el) =>
+                getComputedStyle(el).gridTemplateColumns.split(' ').length,
+            ),
+          1,
+        );
       }
       if (width === 390)
         await page.screenshot({
@@ -154,11 +199,27 @@ for (const topic of research) {
         (id) => document.getElementById(`research-${id}`),
         topic.id,
       );
-      assert.equal(await page.locator('main h3').textContent(), topic.title);
+      if (topic.category === 'current') {
+        assert.equal(await page.locator('main h1').textContent(), topic.title);
+        assert.equal(await page.title(), `${topic.title} | CED Lab`);
+        assert.equal(await page.locator('.research-detail-section').count(), 3);
+        assert.equal(
+          await page.locator('.sample-notice, .badge, .people-links').count(),
+          0,
+        );
+      } else {
+        assert.equal(await page.locator('main h3').textContent(), topic.title);
+      }
       assert.equal(await page.locator('main img').count(), 0);
       assert.equal(
         await page
-          .locator('main a[href="../areas.html#research-' + topic.id + '"]')
+          .locator(
+            'main a[href="../areas.html#' +
+              (['lgp', 'robot'].includes(topic.id)
+                ? 'current'
+                : 'research-' + topic.id) +
+              '"]',
+          )
           .count(),
         1,
       );
@@ -195,13 +256,13 @@ for (const topic of research) {
       '研究資料待補',
     ),
   );
-  await page.goto(base + 'areas.html');
+  await page.goto(base + currentResearch[0].detailUrl);
   await page.waitForFunction(() =>
-    document.querySelector('#research-concurrent'),
+    document.querySelector('.research-detail-content'),
   );
-  await page.locator('#research-concurrent').scrollIntoViewIfNeeded();
+  await page.locator('.research-detail-content').scrollIntoViewIfNeeded();
   await page.waitForFunction(
-    () => !document.querySelector('#research-concurrent img'),
+    () => !document.querySelector('.research-detail-content img'),
   );
   await page.unroute('**/data/members.json');
   await page.unroute('**/data/research.json');
@@ -231,17 +292,74 @@ for (const topic of research) {
   );
   await page.unroute('**/data/groups.json');
   await page.locator('#directory-status button').click();
-  await page.waitForFunction(() => document.querySelector('#research-lgp'));
+  await page.waitForFunction(() =>
+    document.querySelector('#research-thinning-weeding-robot'),
+  );
+  // Click every current project card, read its detail sections, and return to the exact card.
+  for (const topic of currentResearch) {
+    await open('areas.html');
+    await page.locator(`#research-${topic.id} a`).click();
+    await page.waitForFunction(
+      (title) => document.querySelector('main h1')?.textContent === title,
+      topic.title,
+    );
+    assert(new URL(page.url()).pathname.endsWith(topic.detailUrl));
+    assert.equal(await page.locator('.research-detail-section h2').count(), 3);
+    await page.locator('main a').filter({ hasText: '返回研究領域' }).click();
+    await page.waitForFunction(
+      (id) => document.getElementById(`research-${id}`),
+      topic.id,
+    );
+    assert(await page.locator(`#research-${topic.id}`).isVisible());
+  }
+  // Legacy sample topics remain reachable without adding a third overview section.
+  for (const topic of research.filter((r) =>
+    ['masters', 'undergraduate'].includes(r.category),
+  )) {
+    const file = topic.detailUrl || `areas/research.html?id=${topic.id}`;
+    await open(file);
+    assert.equal(await page.locator('main h3').textContent(), topic.title);
+  }
+  await page.goto(base + 'areas.html#research-diagnostics');
+  await page.waitForURL('**/areas/research.html?id=diagnostics');
+  await page.waitForFunction(() =>
+    document.querySelector('#research-diagnostics'),
+  );
+  await page.goto(base + 'areas.html#masters');
+  await page.waitForFunction(() => document.querySelector('#current article'));
+  await page.goto(base + 'areas/research.html?id=unknown');
+  await page.waitForFunction(() =>
+    document
+      .querySelector('#directory-status')
+      .textContent.includes('找不到這項研究'),
+  );
+  assert.equal(
+    await page.locator('[data-section="detail"] article').count(),
+    0,
+  );
+  await page.route('**/data/research.json', (route) => {
+    const rows = structuredClone(research);
+    rows[0].sections = [{ title: 'Invalid', paragraphs: 'not-an-array' }];
+    return route.fulfill({ json: rows });
+  });
+  await page.goto(base + currentResearch[0].detailUrl);
+  await page.waitForFunction(() =>
+    document.querySelector('#directory-status button'),
+  );
+  await page.unroute('**/data/research.json');
   // All-empty datasets show usable empty states.
   await page.route('**/data/*.json', (route) => route.fulfill({ json: [] }));
   for (const file of ['members.html', 'areas.html']) {
     await open(file);
-    assert.equal(await page.locator('.empty-state').count(), 3);
+    assert.equal(
+      await page.locator('.empty-state').count(),
+      file === 'members.html' ? 3 : 2,
+    );
   }
   assert.deepEqual(errors, []);
   await browser.close();
   console.log(
-    'PASS: data relations, 5 viewport sizes, all bidirectional anchors, shared partials, 12 existing pages, alumni, image fallback, missing references, empty/error/retry states.',
+    'PASS: data relations, 5 viewport sizes, all bidirectional anchors, shared partials, existing pages, 3 current projects and detail navigation, historical research, legacy links, alumni, image fallback, missing references, empty/error/retry states.',
   );
 })().catch((e) => {
   console.error(e);
