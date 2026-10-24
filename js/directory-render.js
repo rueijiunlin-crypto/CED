@@ -27,16 +27,10 @@ function link(text, href) {
   return a;
 }
 export function researchDetailHref(topic) {
-  return (
-    localUrl(topic.detailUrl) ||
-    new URL(`areas/research.html?id=${encodeURIComponent(topic.id)}`, ROOT).href
-  );
-}
-function researchReferenceHref(topic) {
-  if (['current', 'historical'].includes(topic.category)) {
-    return new URL(`areas.html#research-${topic.id}`, ROOT).href;
-  }
-  return researchDetailHref(topic);
+  return new URL(
+    `areas/research.html?id=${encodeURIComponent(topic.id)}`,
+    ROOT,
+  ).href;
 }
 function photo(path, alt, portrait = false) {
   const src = localUrl(path);
@@ -65,7 +59,7 @@ function researchLinks(row, model) {
   for (const id of row.researchIds || []) {
     const li = node('li');
     const topic = model.researchById.get(id);
-    if (topic) li.append(link(topic.title, researchReferenceHref(topic)));
+    if (topic) li.append(link(topic.title, researchDetailHref(topic)));
     else li.textContent = '研究資料待補';
     list.append(li);
   }
@@ -126,47 +120,18 @@ function relatedPeople(topic, model) {
   }
   return people;
 }
-export function researchCard(topic, model) {
-  const el = card(`research-${topic.id}`, topic.title, topic.example);
-  appendImage(el, photo(topic.image, `${topic.title}代表圖片`));
-  if (topic.year)
-    el.append(
-      node(
-        'p',
-        'member-meta',
-        `${topic.year}${topic.example ? '（範例年度）' : ''}`,
-      ),
-    );
-  if (topic.summary) el.append(node('p', 'muted', topic.summary));
-  if (topic.technologies?.length) {
-    const tags = node('ul', 'technology-tags');
-    for (const tech of topic.technologies) tags.append(node('li', '', tech));
-    el.append(tags);
-  }
-  const people = relatedPeople(topic, model);
-  if (people.children.length)
-    el.append(node('p', 'field-label', '相關研究人員 / 團隊'), people);
-  const detail = localUrl(topic.detailUrl);
-  if (detail)
-    el.append(
-      link(topic.example ? '查看研究介紹模板 →' : '查看研究介紹 →', detail),
-    );
-  return el;
-}
-export function researchListCard(topic) {
-  const el = node('article', 'card directory-card research-entry');
-  el.id = `research-${topic.id}`;
-  const entry = link('', researchDetailHref(topic));
-  entry.className = 'research-entry-link';
+function researchMeta(topic) {
   const meta = node('div', 'research-meta');
-  meta.append(
-    node(
-      'span',
-      'research-status',
-      topic.category === 'current' ? '進行中' : '歷屆研究',
-    ),
-  );
-  if (topic.field) meta.append(node('span', 'research-field', topic.field));
+  const category = {
+    current: '進行中',
+    historical: '歷屆研究',
+    masters: '碩士研究',
+    undergraduate: '大學部專題',
+  }[topic.category];
+  if (category) meta.append(node('span', 'research-status', category));
+  if (topic.status?.trim() && topic.status !== category)
+    meta.append(node('span', 'research-status', topic.status));
+  if (topic.field?.trim()) meta.append(node('span', 'research-field', topic.field));
   if (topic.year)
     meta.append(
       node(
@@ -175,47 +140,60 @@ export function researchListCard(topic) {
         `${topic.year}${topic.example ? '（範例年度）' : ''}`,
       ),
     );
+  return meta;
+}
+function technologyTags(topic) {
+  const tags = node('ul', 'technology-tags');
+  for (const tech of topic.technologies || []) {
+    if (tech.trim()) tags.append(node('li', '', tech));
+  }
+  return tags.children.length ? tags : null;
+}
+export function researchListCard(topic) {
+  const el = node('article', 'card directory-card research-entry');
+  el.id = `research-${topic.id}`;
+  const entry = link('', researchDetailHref(topic));
+  entry.className = 'research-entry-link';
+  const meta = researchMeta(topic);
   if (topic.example) meta.append(node('span', 'badge', '範例資料'));
   entry.append(meta, node('h3', '', topic.title));
-  if (topic.summary) entry.append(node('p', 'muted', topic.summary));
+  if (topic.summary?.trim()) entry.append(node('p', 'muted', topic.summary));
   entry.append(node('span', 'research-read-more', '查看研究介紹 →'));
   el.append(entry);
   return el;
 }
 export function researchDetail(topic, model) {
-  // Keep the earlier sample detail pages and their member relations intact.
-  if (topic.example) {
-    return researchCard({ ...topic, detailUrl: undefined }, model);
-  }
-  const el = node('article', 'research-detail-content');
+  const el = topic.example
+    ? card(`research-${topic.id}`, topic.title, true)
+    : node('article', 'research-detail-content');
   el.id = `research-${topic.id}`;
-  const meta = node('div', 'research-meta');
-  meta.append(
-    node(
-      'span',
-      'research-status',
-      topic.category === 'current' ? '進行中' : '歷屆研究',
-    ),
-  );
-  if (topic.field) meta.append(node('span', 'research-field', topic.field));
-  el.append(meta);
+  const meta = researchMeta(topic);
+  if (meta.children.length) el.append(meta);
   const image = photo(topic.image, `${topic.title}代表圖片`);
   if (image) el.append(image);
-  if (topic.summary) el.append(node('p', 'research-lead', topic.summary));
-  if (topic.introduction) el.append(node('p', '', topic.introduction));
+  if (topic.summary?.trim())
+    el.append(
+      node('p', topic.example ? 'muted' : 'research-lead', topic.summary),
+    );
+  if (topic.introduction?.trim()) el.append(node('p', '', topic.introduction));
   for (const section of topic.sections || []) {
+    const paragraphs = (section.paragraphs || []).filter((text) => text.trim());
+    const items = (section.items || []).filter((text) => text.trim());
+    if (!paragraphs.length && !items.length) continue;
     const block = node('section', 'research-detail-section');
-    block.append(node('h2', '', section.title));
-    for (const paragraph of section.paragraphs || []) {
+    if (section.title.trim()) block.append(node('h2', '', section.title));
+    for (const paragraph of paragraphs) {
       block.append(node('p', '', paragraph));
     }
-    if (section.items?.length) {
+    if (items.length) {
       const list = node('ul');
-      for (const item of section.items) list.append(node('li', '', item));
+      for (const item of items) list.append(node('li', '', item));
       block.append(list);
     }
     el.append(block);
   }
+  const tags = technologyTags(topic);
+  if (tags) el.append(tags);
   // Use the same reverse lookup when confirmed people are assigned in future.
   const people = relatedPeople(topic, model);
   if (people.children.length) {

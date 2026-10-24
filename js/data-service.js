@@ -32,6 +32,19 @@ async function fetchCollection(name) {
     }
     if (typeof row[name === 'research' ? 'title' : 'name'] !== 'string')
       throw new Error(`${name}: missing title/name`);
+    if (name === 'research') {
+      for (const field of ['summary', 'introduction', 'field', 'status', 'image']) {
+        if (row[field] !== undefined && typeof row[field] !== 'string')
+          throw new Error(`research: invalid ${field}`);
+      }
+      if (
+        row.technologies !== undefined &&
+        (!Array.isArray(row.technologies) ||
+          row.technologies.some((value) => typeof value !== 'string'))
+      ) {
+        throw new Error('research: invalid technologies');
+      }
+    }
     if (name === 'research' && row.sections !== undefined) {
       const textList = (values) =>
         values === undefined ||
