@@ -58,9 +58,10 @@ try {
     );
     renderAlumni(section('alumni'), model);
   } else if (main.dataset.directory === 'research-detail') {
+    const ids = new URLSearchParams(location.search).getAll('id');
     const id =
-      main.dataset.researchId || new URLSearchParams(location.search).get('id');
-    const topic = model.researchById.get(id);
+      ids.length === 1 && /^[a-z][a-z0-9-]*$/.test(ids[0]) ? ids[0] : null;
+    const topic = id ? model.researchById.get(id) : undefined;
     const container = section('detail');
     container.replaceChildren();
     if (topic) {
@@ -68,6 +69,11 @@ try {
       const heading = main.querySelector('[data-research-title]');
       if (heading) heading.textContent = topic.title;
       document.title = `${topic.title} | CED Lab`;
+      const back = main.querySelector('[data-research-back]');
+      const anchor = ['current', 'historical'].includes(topic.category)
+        ? `research-${topic.id}`
+        : 'current';
+      back.setAttribute('href', `../areas.html#${anchor}`);
     } else {
       pageMessage = '找不到這項研究，請返回研究領域瀏覽其他主題。';
     }
