@@ -628,6 +628,28 @@ for (const topic of research) {
     assert.equal(await page.locator('img[src*="prototype-cutout"]').count(), 0);
     await page.locator('main img').evaluateAll((images) => images.forEach((image) => image.loading = 'eager'));
     await page.waitForFunction(() => [...document.querySelectorAll('main img')].every((image) => image.complete && image.naturalWidth > 0));
+    // Mowing's portrait stays left; the other two figures stack on the right.
+    const figures = page.locator('#research-mowing-robot > .research-gallery-block .research-figure');
+    const boxes = [];
+    for (let index = 0; index < 3; index++) boxes.push(await figures.nth(index).boundingBox());
+    const [field, map, perception] = boxes;
+    if (width > 540) {
+      assert(field.x < map.x);
+      assert(Math.abs(map.x - perception.x) < 1);
+      assert(Math.abs(field.y - map.y) < 1);
+      assert(Math.abs(perception.y - map.y - map.height - 24) < 1, 'right column gap must be 24px');
+      assert(Math.abs(map.x - field.x - field.width - 24) < 1, 'column gap must be 24px');
+    } else {
+      assert(Math.abs(field.x - map.x) < 1 && Math.abs(map.x - perception.x) < 1);
+      assert(map.y >= field.y + field.height);
+      assert(perception.y >= map.y + map.height);
+    }
+    for (const image of await figures.locator('img').all()) {
+      assert(await image.evaluate((img) =>
+        getComputedStyle(img).objectFit === 'contain' &&
+        Math.abs(img.width / img.height - img.naturalWidth / img.naturalHeight) < 0.01,
+      ));
+    }
     for (let index = 0; index < mowing.gallery.length; index++) {
       const trigger = page.locator('.research-image-button').nth(index);
       await trigger.click();
