@@ -59,6 +59,7 @@ function researchLinks(row, model) {
   for (const id of row.researchIds || []) {
     const li = node('li');
     const topic = model.researchById.get(id);
+    if (topic?.example) continue;
     if (topic) li.append(link(topic.title, researchDetailHref(topic)));
     else li.textContent = '研究資料待補';
     list.append(li);
@@ -126,7 +127,7 @@ export function groupCard(group, model) {
 function relatedPeople(topic, model) {
   const people = node('ul', 'people-links');
   for (const member of model.members.filter((m) =>
-    (m.researchIds || []).includes(topic.id),
+    !m.example && (m.researchIds || []).includes(topic.id),
   )) {
     const li = node('li');
     li.append(
@@ -138,7 +139,7 @@ function relatedPeople(topic, model) {
     people.append(li);
   }
   for (const group of model.groups.filter(
-    (g) => g.status === 'current' && (g.researchIds || []).includes(topic.id),
+    (g) => g.status === 'current' && !g.example && (g.researchIds || []).includes(topic.id),
   )) {
     const li = node('li');
     li.append(
@@ -152,6 +153,7 @@ function relatedPeople(topic, model) {
 }
 function memberIdentity(member) {
   const degree = { master: '碩士', phd: '博士' }[member.degree] || '';
+  if (!degree) return member.status === 'alumni' ? '畢業成員' : '在籍研究成員';
   return `${degree}${member.status === 'alumni' ? '畢業生' : '研究生'}`;
 }
 function publicationUrl(path) {
@@ -168,7 +170,7 @@ function researchParticipants(topic, model) {
   const sections = [];
   for (const status of ['current', 'alumni']) {
     const members = model.members.filter((member) =>
-      member.status === status && member.researchIds.includes(topic.id),
+      member.status === status && !member.example && member.researchIds.includes(topic.id),
     );
     if (!members.length) continue;
     const block = node('section', 'research-detail-section');
@@ -436,7 +438,8 @@ export function researchDetail(topic, model) {
   const tags = technologyTags(topic);
   if (tags) el.append(tags);
   // Use the same reverse lookup when confirmed people are assigned in future.
-  if (model.participations.some((row) => row.researchId === topic.id)) {
+  if (model.participations.some((row) => row.researchId === topic.id) ||
+      model.members.some((member) => !member.example && member.researchIds.includes(topic.id))) {
     el.append(...researchParticipants(topic, model));
   } else {
     const people = relatedPeople(topic, model);
@@ -470,7 +473,7 @@ export function fillGrid(container, rows, render, className = '') {
 export function renderAlumni(container, model) {
   container.replaceChildren();
   const years = new Map();
-  for (const member of model.members.filter((m) => m.status === 'alumni')) {
+  for (const member of model.members.filter((m) => m.status === 'alumni' && !m.example)) {
     const year = Number.isInteger(member.graduationYear)
       ? member.graduationYear
       : null;

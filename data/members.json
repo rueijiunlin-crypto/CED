@@ -1,92 +1,5 @@
 [
   {
-    "id": "master-1",
-    "name": "研究生範例 A",
-    "degree": "master",
-    "status": "current",
-    "grade": "M2",
-    "researchIds": [
-      "lgp"
-    ],
-    "example": true
-  },
-  {
-    "id": "master-2",
-    "name": "研究生範例 B",
-    "degree": "master",
-    "status": "current",
-    "grade": "M1",
-    "researchIds": [
-      "lgp",
-      "diagnostics"
-    ],
-    "example": true
-  },
-  {
-    "id": "master-3",
-    "name": "研究生範例 C",
-    "degree": "master",
-    "status": "current",
-    "grade": "M2",
-    "researchIds": [
-      "diagnostics"
-    ],
-    "example": true
-  },
-  {
-    "id": "master-4",
-    "name": "研究生範例 D",
-    "degree": "master",
-    "status": "current",
-    "grade": "M1",
-    "researchIds": [
-      "robot"
-    ],
-    "example": true
-  },
-  {
-    "id": "master-5",
-    "name": "研究生範例 E",
-    "degree": "master",
-    "status": "current",
-    "grade": "M1",
-    "researchIds": [
-      "robot"
-    ],
-    "example": true
-  },
-  {
-    "id": "alumni-demo-1",
-    "name": "畢業成員範例 A",
-    "degree": "master",
-    "status": "alumni",
-    "graduationYear": 2025,
-    "researchIds": [
-      "concurrent"
-    ],
-    "photo": "image/member-placeholder.svg",
-    "example": true
-  },
-  {
-    "id": "alumni-demo-2",
-    "name": "畢業成員範例 B",
-    "degree": "phd",
-    "status": "alumni",
-    "graduationYear": 2024,
-    "researchIds": [
-      "robust"
-    ],
-    "example": true
-  },
-  {
-    "id": "alumni-demo-3",
-    "name": "畢業成員範例 C",
-    "degree": "master",
-    "status": "alumni",
-    "graduationYear": 2024,
-    "example": true
-  },
-  {
     "id": "lin-ruei-jiun",
     "name": "林睿鈞",
     "degree": "master",
@@ -104,5 +17,50 @@
     "graduationYear": 2026,
     "example": false,
     "researchTopic": "自主割草機器人導航框架"
+  },
+  {
+    "id": "chen-hong-jun",
+    "name": "陳竑鈞",
+    "status": "current",
+    "researchIds": [
+      "thinning-weeding-robot"
+    ],
+    "example": false
+  },
+  {
+    "id": "chen-jie-yi",
+    "name": "陳杰逸",
+    "status": "current",
+    "researchIds": [
+      "thinning-weeding-robot"
+    ],
+    "example": false
+  },
+  {
+    "id": "cai-chen-you",
+    "name": "蔡宸祐",
+    "status": "current",
+    "researchIds": [
+      "marine-trash-collection-vessel"
+    ],
+    "example": false
+  },
+  {
+    "id": "zhu-yi-en",
+    "name": "朱溢恩",
+    "status": "current",
+    "researchIds": [
+      "marine-trash-collection-vessel"
+    ],
+    "example": false
+  },
+  {
+    "id": "lin-yi-cheng",
+    "name": "林奕呈",
+    "status": "current",
+    "researchIds": [
+      "marine-trash-collection-vessel"
+    ],
+    "example": false
   }
 ]
