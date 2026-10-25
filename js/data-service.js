@@ -55,7 +55,7 @@ async function fetchCollection(name) {
         typeof row.introduction !== 'string')
       throw new Error('members: invalid introduction');
     if (name === 'members') {
-      for (const field of ['researchTopic', 'researchFocus']) {
+      for (const field of ['researchTopic', 'researchFocus', 'identity']) {
         if (row[field] !== undefined && typeof row[field] !== 'string')
           throw new Error(`members: invalid ${field}`);
       }

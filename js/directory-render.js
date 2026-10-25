@@ -95,7 +95,7 @@ export function memberCard(member, model) {
   const image = member.status === 'current' || member.photo
     ? photo(member.photo, `${member.name}的照片`, true) : null;
   const { el, content } = peopleCard(`member-${member.id}`, member.name, member.example, image);
-  if (['master', 'phd'].includes(member.degree))
+  if (member.identity?.trim() || ['master', 'phd'].includes(member.degree))
     content.append(node('p', 'member-meta', memberIdentity(member)));
   const fields = node('dl', 'member-fields');
   appendField(fields, '研究方向', member.researchFocus);
@@ -151,6 +151,7 @@ function relatedPeople(topic, model) {
   return people;
 }
 function memberIdentity(member) {
+  if (member.identity?.trim()) return member.identity;
   const degree = { master: '碩士', phd: '博士' }[member.degree] || '';
   if (!degree) return member.status === 'alumni' ? '畢業成員' : '在籍研究成員';
   return `${degree}${member.status === 'alumni' ? '畢業生' : '研究生'}`;

@@ -62,5 +62,16 @@
       "marine-trash-collection-vessel"
     ],
     "example": false
+  },
+  {
+    "id": "lin-zhi-en",
+    "name": "林志恩",
+    "identity": "應屆畢業成員",
+    "status": "alumni",
+    "graduationYear": 2026,
+    "researchIds": [
+      "thinning-weeding-robot"
+    ],
+    "example": false
   }
 ]

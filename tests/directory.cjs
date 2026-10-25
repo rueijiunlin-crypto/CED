@@ -27,7 +27,7 @@ for (const row of [...members, ...groups])
     assert(research.some((r) => r.id === id));
 for (const topic of research)
   if (topic.detailUrl) assert(fs.existsSync(path.join(root, topic.detailUrl)));
-assert.equal(sourceMembers.length, 7);
+assert.equal(sourceMembers.length, 8);
 assert(sourceMembers.every((member) => !member.example));
 assert.deepEqual(members.filter((member) => member.status === 'current').map((member) => member.name),
   ['林睿鈞', '陳竑鈞', '陳杰逸', '蔡宸祐', '朱溢恩', '林奕呈']);
@@ -727,7 +727,7 @@ for (const topic of research) {
   assert(concise.includes('共同指導教授') && concise.includes('共同指導測試教授'));
   assert(!concise.includes('不顯示的一般指導教授') && !concise.includes('不得重複顯示的完整論文'));
   await page.unroute('**/data/participations.json');
-  for (const field of ['researchTopic', 'researchFocus']) {
+  for (const field of ['researchTopic', 'researchFocus', 'identity']) {
     await page.route('**/data/members.json', (route) => {
       const rows = structuredClone(sourceMembers); rows[0][field] = 42;
       return route.fulfill({ json: rows });
@@ -754,6 +754,43 @@ for (const topic of research) {
       await page.locator(`${target} .research-links a`).click();
       await page.waitForURL(new URL(`areas/research.html?id=${id}`, base).href);
     }
+  }
+  // The graduate has only the newly confirmed identity, year and project link.
+  const newGraduate = members.find((member) => member.id === 'lin-zhi-en');
+  assert.equal(sourceMembers.filter((member) => member.name === '林志恩').length, 1);
+  assert.equal(newGraduate.status, 'alumni');
+  assert.equal(newGraduate.identity, '應屆畢業成員');
+  assert.equal(newGraduate.graduationYear, 2026);
+  for (const field of ['degree', 'photo', 'researchFocus', 'researchTopic', 'introduction'])
+    assert.equal(newGraduate[field], undefined);
+  assert(!participations.some((row) => row.memberId === newGraduate.id));
+  for (const width of [1440, 1024, 768, 390, 320]) {
+    await page.setViewportSize({ width, height: 900 });
+    await open('members.html');
+    const card = page.locator('#member-lin-zhi-en');
+    await card.waitFor({ state: 'visible' });
+    assert.equal(await card.locator('h3').textContent(), '林志恩');
+    assert.equal(await card.locator('.member-meta').textContent(), '應屆畢業成員');
+    assert.equal(await card.locator('.member-fields, img').count(), 0);
+    assert.equal(await page.locator('#masters #member-lin-zhi-en').count(), 0);
+    assert((await card.locator('xpath=ancestor::details').locator('summary').textContent()).includes('2026 年畢業'));
+    await card.locator('.research-links a').click();
+    await page.waitForURL(new URL('areas/research.html?id=thinning-weeding-robot', base).href);
+    await page.waitForFunction(() => document.querySelector('[data-people="alumni"]'));
+    const history = page.locator('[data-people="alumni"]');
+    assert.equal(await history.locator('a[data-member-link]').textContent(), '林志恩');
+    assert((await history.textContent()).includes('應屆畢業成員'));
+    assert((await history.textContent()).includes('2026 年畢業'));
+    assert.equal(await history.locator('img, .research-thesis, .thesis-keywords').count(), 0);
+    assert(!(await history.textContent()).includes('碩士'));
+    assert(!(await history.textContent()).includes('研究方向'));
+    assert(!(await history.textContent()).includes('參與角色'));
+    assert(!(await history.textContent()).includes('指導教授'));
+    assert.deepEqual(await page.locator('[data-people="current"] a[data-member-link]').allTextContents(), ['陳竑鈞', '陳杰逸']);
+    await history.locator('a[data-member-link]').click();
+    await page.waitForURL(new URL('members.html#member-lin-zhi-en', base).href);
+    await card.waitFor({ state: 'visible' });
+    assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
   }
   // Defensive filtering keeps future sample data out of the public member page.
   await page.route('**/data/members.json', (route) => route.fulfill({ json: [
