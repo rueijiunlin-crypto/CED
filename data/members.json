@@ -85,5 +85,21 @@
     "status": "alumni",
     "graduationYear": 2024,
     "example": true
+  },
+  {
+    "id": "lin-ruei-jiun",
+    "name": "林睿鈞",
+    "degree": "master",
+    "status": "current",
+    "example": false,
+    "introduction": "以視覺語言模型與無人機視覺感知為研究核心，探討空拍影像的即時傳輸、場景理解及目標辨識技術，並結合視覺目標定位與影像分割方法，發展智慧化環境感知能力。未來將探索相關技術於空拍機與地面機器人協作系統中的應用。"
+  },
+  {
+    "id": "yan-jia-yuan",
+    "name": "顏嘉源",
+    "degree": "master",
+    "status": "alumni",
+    "graduationYear": 2026,
+    "example": false
   }
 ]

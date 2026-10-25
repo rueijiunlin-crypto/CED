@@ -73,8 +73,11 @@ export function memberCard(member, model) {
   if (member.status === 'current' || member.photo)
     appendImage(el, photo(member.photo, `${member.name}的照片`, true));
   const degree = { master: '碩士', phd: '博士' }[member.degree];
-  const label = [degree, member.grade].filter(Boolean).join(' · ');
+  const label = [member.example ? degree : memberIdentity(member), member.grade]
+    .filter(Boolean).join(' · ');
   if (label) el.append(node('p', 'member-meta', label));
+  if (member.introduction?.trim())
+    el.append(node('p', 'muted', member.introduction));
   const links = researchLinks(member, model);
   if (links.children.length)
     el.append(node('p', 'field-label', '研究方向 · 點選查看研究介紹'), links);
@@ -119,6 +122,85 @@ function relatedPeople(topic, model) {
     people.append(li);
   }
   return people;
+}
+function memberIdentity(member) {
+  const degree = { master: '碩士', phd: '博士' }[member.degree] || '';
+  return `${degree}${member.status === 'alumni' ? '畢業生' : '研究生'}`;
+}
+function publicationUrl(path) {
+  if (typeof path !== 'string' || !path.trim()) return null;
+  try {
+    const url = new URL(path, ROOT);
+    if (url.username || url.password) return null;
+    return url.protocol === 'https:' ? url.href : localUrl(path);
+  } catch {
+    return null;
+  }
+}
+function researchParticipants(topic, model) {
+  const sections = [];
+  for (const status of ['current', 'alumni']) {
+    const members = model.members.filter((member) =>
+      member.status === status && member.researchIds.includes(topic.id),
+    );
+    if (!members.length) continue;
+    const block = node('section', 'research-detail-section');
+    block.dataset.people = status;
+    const people = node('ul', 'people-links research-participants');
+    block.append(node('h2', '', status === 'current'
+      ? '現階段研究人員' : '歷屆研究生與論文'), people);
+    for (const member of members) {
+      const record = model.participations.find((row) =>
+        row.researchId === topic.id && row.memberId === member.id,
+      );
+      const person = node('li', 'research-person');
+      const content = node('div');
+      const heading = node('h3');
+      const name = link(member.name, new URL(`members.html#member-${member.id}`, ROOT).href);
+      name.dataset.memberLink = '';
+      heading.append(name);
+      content.append(heading);
+      if (member.example) content.append(node('span', 'badge', '範例資料'));
+      const labels = [memberIdentity(member)];
+      if (status === 'alumni' && member.graduationYear)
+        labels.push(`${member.graduationYear} 年畢業`);
+      content.append(node('p', 'member-meta', labels.join(' · ')));
+      if (record?.role) content.append(node('p', 'muted', `參與角色：${record.role}`));
+      if (record?.researchYear)
+        content.append(node('p', 'muted', `研究年份：${record.researchYear}`));
+      if (record?.focus?.trim())
+        content.append(node('p', '', `研究方向：${record.focus}`));
+      if (status === 'current' && member.introduction?.trim())
+        content.append(node('p', 'muted', member.introduction));
+      if (record?.contribution?.trim())
+        content.append(node('p', '', `研究貢獻：${record.contribution}`));
+      if (record?.thesis) {
+        const thesis = node('p', 'research-thesis');
+        const title = `《${record.thesis.title}》`;
+        const url = publicationUrl(record.thesis.url);
+        thesis.append(member.degree === 'master' ? '碩士論文：' : '學位論文：');
+        thesis.append(url ? link(title, url) : node('span', '', title));
+        content.append(thesis);
+        if (record.thesis.advisor?.trim())
+          content.append(node('p', 'muted', `指導教授：${record.thesis.advisor}`));
+      }
+      if (status === 'current' || member.photo) {
+        const image = photo(member.photo, `${member.name}的照片`, true);
+        person.append(image);
+        person.classList.add('research-person-with-photo');
+      }
+      person.append(content);
+      people.append(person);
+    }
+    sections.push(block);
+  }
+  const groups = relatedPeople(topic, { ...model, members: [] });
+  if (groups.children.length) {
+    const block = node('section', 'research-detail-section');
+    block.append(node('h2', '', '相關專題團隊'), groups);
+    sections.push(block);
+  }
+  return sections;
 }
 function researchMeta(topic) {
   const meta = node('div', 'research-meta');
@@ -323,10 +405,26 @@ export function researchDetail(topic, model) {
   const tags = technologyTags(topic);
   if (tags) el.append(tags);
   // Use the same reverse lookup when confirmed people are assigned in future.
-  const people = relatedPeople(topic, model);
-  if (people.children.length) {
+  if (model.participations.some((row) => row.researchId === topic.id)) {
+    el.append(...researchParticipants(topic, model));
+  } else {
+    const people = relatedPeople(topic, model);
+    if (people.children.length) {
+      const block = node('section', 'research-detail-section');
+      block.append(node('h2', '', '相關研究人員 / 團隊'), people);
+      el.append(block);
+    }
+  }
+  if (topic.references?.length) {
     const block = node('section', 'research-detail-section');
-    block.append(node('h2', '', '相關研究人員 / 團隊'), people);
+    const list = node('ol');
+    block.append(node('h2', '', '相關參考文獻'), list);
+    for (const reference of topic.references) {
+      const item = node('li');
+      const url = publicationUrl(reference.url);
+      item.append(url ? link(reference.title, url) : node('span', '', reference.title));
+      list.append(item);
+    }
     el.append(block);
   }
   return el;

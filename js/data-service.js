@@ -47,10 +47,38 @@ async function fetchCollection(name) {
     ) {
       throw new Error('groups: invalid memberNames');
     }
-    if (typeof row[name === 'research' ? 'title' : 'name'] !== 'string')
+    if (name !== 'participations' &&
+        typeof row[name === 'research' ? 'title' : 'name'] !== 'string')
       throw new Error(`${name}: missing title/name`);
+    if (name === 'members' && row.introduction !== undefined &&
+        typeof row.introduction !== 'string')
+      throw new Error('members: invalid introduction');
+    if (name === 'participations') {
+      if (['researchId', 'memberId', 'role'].some((field) =>
+        typeof row[field] !== 'string' || !row[field].trim(),
+      )) throw new Error('participations: missing relation or role');
+      for (const field of ['focus', 'contribution']) {
+        if (row[field] !== undefined && typeof row[field] !== 'string')
+          throw new Error(`participations: invalid ${field}`);
+      }
+      if (row.researchYear !== undefined && !Number.isInteger(row.researchYear))
+        throw new Error('participations: invalid researchYear');
+      if (row.thesis !== undefined && (
+        !row.thesis || typeof row.thesis.title !== 'string' ||
+        !row.thesis.title.trim() ||
+        ['advisor', 'url'].some((field) =>
+          row.thesis[field] !== undefined && typeof row.thesis[field] !== 'string',
+        )
+      )) throw new Error('participations: invalid thesis');
+    }
     if (name === 'research') {
       if (!validImages(row.gallery)) throw new Error('research: invalid gallery');
+      if (row.references !== undefined && (
+        !Array.isArray(row.references) || row.references.some((reference) =>
+          !reference || typeof reference.title !== 'string' || !reference.title.trim() ||
+          (reference.url !== undefined && typeof reference.url !== 'string'),
+        )
+      )) throw new Error('research: invalid references');
       for (const field of ['summary', 'introduction', 'field', 'status', 'image']) {
         if (row[field] !== undefined && typeof row[field] !== 'string')
           throw new Error(`research: invalid ${field}`);
@@ -86,12 +114,29 @@ async function fetchCollection(name) {
   return rows;
 }
 export async function loadDirectory() {
-  const [members, groups, research] = await Promise.all(
-    ['members', 'groups', 'research'].map(fetchCollection),
+  const [sourceMembers, groups, research, participations] = await Promise.all(
+    ['members', 'groups', 'research', 'participations'].map(fetchCollection),
   );
   const researchById = new Map(research.map((row) => [row.id, row]));
+  const memberIds = new Set(sourceMembers.map((row) => row.id));
+  const pairs = new Set();
+  for (const row of participations) {
+    const pair = `${row.researchId}:${row.memberId}`;
+    if (!researchById.has(row.researchId) || !memberIds.has(row.memberId) || pairs.has(pair))
+      throw new Error('participations: unknown reference or duplicate pair');
+    pairs.add(pair);
+  }
+  // New associations have one source; legacy researchIds remain compatible.
+  const members = sourceMembers.map((member) => ({
+    ...member,
+    researchIds: [...new Set([
+      ...(member.researchIds || []),
+      ...participations.filter((row) => row.memberId === member.id)
+        .map((row) => row.researchId),
+    ])],
+  }));
   const missing = [...members, ...groups].some((row) =>
     (row.researchIds || []).some((id) => !researchById.has(id)),
   );
-  return { members, groups, research, researchById, missing };
+  return { members, groups, research, participations, researchById, missing };
 }

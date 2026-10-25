@@ -115,6 +115,36 @@
   line-height: 1.95;
 }
 
+.research-page .research-participants {
+  list-style: none;
+  padding: 0;
+}
+
+.research-page .research-person {
+  padding: 20px 0;
+  overflow-wrap: anywhere;
+}
+
+.research-page .research-person h3 {
+  margin: 0 0 8px;
+}
+
+.research-page .research-person p {
+  margin: 8px 0;
+}
+
+.research-page .research-person-with-photo {
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr);
+  align-items: start;
+  gap: 20px;
+}
+
+.research-page .research-person .member-photo {
+  width: 96px;
+  margin: 0;
+}
+
 .research-page :focus-visible {
   outline-color: var(--research-accent);
 }
@@ -232,6 +262,10 @@
 }
 
 @media (max-width: 540px) {
+  .research-page .research-person-with-photo {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+  }
   .research-page .research-entry-with-image,
   .research-page .research-gallery {
     grid-template-columns: minmax(0, 1fr);

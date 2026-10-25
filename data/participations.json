@@ -1,0 +1,20 @@
+[
+  {
+    "id": "mowing-lin-ruei-jiun",
+    "researchId": "mowing-robot",
+    "memberId": "lin-ruei-jiun",
+    "role": "研究參與",
+    "focus": "視覺語言模型、無人機視覺感知、空地協作自主系統"
+  },
+  {
+    "id": "mowing-yan-jia-yuan",
+    "researchId": "mowing-robot",
+    "memberId": "yan-jia-yuan",
+    "role": "論文研究",
+    "contribution": "空拍輔助建圖、語義感知與自主割草機器人導航整合。",
+    "thesis": {
+      "title": "整合空拍機輔助建圖與語義感知之自主割草機器人導航框架設計與實作",
+      "advisor": "余志成教授"
+    }
+  }
+]
