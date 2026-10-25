@@ -8,10 +8,19 @@ const detailFile = (topic) => `areas/research.html?id=${encodeURIComponent(topic
 const root = path.resolve(__dirname, '..');
 const read = (n) =>
   JSON.parse(fs.readFileSync(path.join(root, `data/${n}.json`)));
-const members = read('members'),
+const sourceMembers = read('members'),
   groups = read('groups'),
-  research = read('research');
-for (const rows of [members, groups, research])
+  research = read('research'),
+  participations = read('participations');
+const members = sourceMembers.map((member) => ({
+  ...member,
+  researchIds: [...new Set([
+    ...(member.researchIds || []),
+    ...participations.filter((row) => row.memberId === member.id)
+      .map((row) => row.researchId),
+  ])],
+}));
+for (const rows of [members, groups, research, participations])
   assert.equal(new Set(rows.map((r) => r.id)).size, rows.length);
 for (const row of [...members, ...groups])
   for (const id of row.researchIds || [])
@@ -19,8 +28,8 @@ for (const row of [...members, ...groups])
 for (const topic of research)
   if (topic.detailUrl) assert(fs.existsSync(path.join(root, topic.detailUrl)));
 for (const member of members) {
-  assert(member.example);
-  assert(member.name.includes('範例'));
+  if (member.example) assert(member.name.includes('範例'));
+  else assert(!member.name.includes('範例'));
 }
 for (const group of groups) {
   assert(group.name.includes('範例'));
@@ -36,10 +45,10 @@ assert.deepEqual(
 for (const topic of research) {
   if (topic.category === 'current') {
     assert.equal(topic.example, false);
-    assert(topic.sections.length >= 3);
+    assert(topic.sections.length >= 1);
     // Sample people must not be presented as participants in real projects.
     assert(
-      ![...members, ...groups].some((row) =>
+      ![...members, ...groups].filter((row) => row.example).some((row) =>
         (row.researchIds || []).includes(topic.id),
       ),
     );
@@ -47,7 +56,8 @@ for (const topic of research) {
     assert(topic.example);
     assert(topic.title.includes('範例'));
   }
-  assert(!topic.image);
+  if (topic.image) assert(fs.existsSync(path.join(root, topic.image)));
+  for (const image of topic.gallery || []) assert(fs.existsSync(path.join(root, image.src)));
 }
 (async () => {
   const base = process.env.CED_TEST_BASE || 'http://127.0.0.1:8000/';
@@ -103,7 +113,8 @@ for (const topic of research) {
         'areas.html',
       );
       if (file === 'members.html') {
-        assert.equal(await page.locator('#masters article').count(), 5);
+        assert.equal(await page.locator('#masters article').count(),
+          members.filter((member) => member.status === 'current' && member.degree === 'master').length);
         const cols = await page
           .locator('[data-section="masters"]')
           .evaluate(
@@ -172,7 +183,9 @@ for (const topic of research) {
   await open('members.html');
   assert.deepEqual(
     await page.locator('.alumni-year summary').allTextContents(),
-    ['2025 · 1 位', '2024 · 2 位'],
+    [...new Set(members.filter((member) => member.status === 'alumni').map((member) => member.graduationYear))]
+      .sort((a, b) => b - a)
+      .map((year) => `${year} · ${members.filter((member) => member.status === 'alumni' && member.graduationYear === year).length} 位`),
   );
   assert.equal(
     await page
@@ -185,7 +198,7 @@ for (const topic of research) {
   await page.locator('.alumni-year summary').last().click();
   await page.evaluate(() => (location.hash = 'member-alumni-demo-2'));
   await page.waitForFunction(
-    () => document.querySelectorAll('.alumni-year')[1].open,
+    () => document.querySelector('#member-alumni-demo-2').closest('details').open,
   );
   await page.setViewportSize({ width: 390, height: 844 });
   await page.locator('label[for="navcheck"]').click();
@@ -218,15 +231,16 @@ for (const topic of research) {
       if (topic.category === 'current') {
         assert.equal(await page.locator('main h1').textContent(), topic.title);
         assert.equal(await page.title(), `${topic.title} | CED Lab`);
-        assert.equal(await page.locator('.research-detail-section').count(), 3);
+        assert.equal(await page.locator('.research-detail-section').count(), 3 + ((topic.gallery || []).some((image) => image.src !== topic.image) ? 1 : 0));
         assert.equal(
-          await page.locator('.sample-notice, .badge, .people-links').count(),
+          await page.locator('.sample-notice, .badge').count(),
           0,
         );
       } else {
         assert.equal(await page.locator('main h3').textContent(), topic.title);
       }
-      assert.equal(await page.locator('main img').count(), 0);
+      assert.equal(await page.locator('main img').count(),
+        topic.id === 'mowing-robot' ? 1 + (topic.image ? 1 : 0) + (topic.gallery || []).filter((image) => image.src !== topic.image).length : 0);
       assert.equal(
         await page
           .locator(
@@ -418,6 +432,368 @@ for (const topic of research) {
     0,
   );
   await page.unroute('**/data/research.json');
+  // Research-only image fixtures never modify the production JSON or image files.
+  const diagram = 'image/content-diagram.svg';
+  const photograph = 'image/content-photo.svg';
+  await page.route('**/image/content-diagram.svg', (route) => route.fulfill({
+    contentType: 'image/svg+xml',
+    body: '<svg xmlns="http://www.w3.org/2000/svg" width="2400" height="600"><rect width="2400" height="600" fill="#eff6ff"/><rect x="100" y="100" width="2200" height="400" fill="#0284c7"/></svg>',
+  }));
+  await page.route('**/image/content-photo.svg', (route) => route.fulfill({
+    contentType: 'image/svg+xml',
+    body: '<svg xmlns="http://www.w3.org/2000/svg" width="600" height="900"><rect width="600" height="900" fill="#e2e8f0"/><circle cx="300" cy="450" r="200" fill="#0284c7"/></svg>',
+  }));
+  const imageTopic = {
+    id: 'gallery-test', title: '圖片展示範例', category: 'current', example: true,
+    summary: '僅用於自動化測試的圖片展示。',
+    image: diagram, technologies: ['測試技術'],
+    sections: [
+      { title: '研究目的', paragraphs: ['驗證圖片與文字閱讀順序。'] },
+      { title: '系統架構', paragraphs: ['此為測試用圖形。'], images: [
+        { src: diagram, alt: '系統架構測試圖', caption: '架構圖說明 <b>安全文字</b>' },
+      ] },
+      { title: '實驗照片', images: [
+        { src: photograph, alt: '測試照片', caption: '測試照片說明', fit: 'cover' },
+      ] },
+      { title: '研究方法', items: ['測試條列內容'] },
+    ],
+    gallery: [
+      { src: diagram, alt: '補充架構圖', caption: '第一張補充圖' },
+      { src: photograph, caption: '第二張補充圖', fit: 'cover' },
+    ],
+  };
+  const mockResearch = (topic) => page.route('**/data/research.json', (route) =>
+    route.fulfill({ json: [...research, topic] }),
+  );
+  await mockResearch(imageTopic);
+  for (const width of [1440, 1024, 768, 390, 320]) {
+    await page.setViewportSize({ width, height: 900 });
+    await open('areas.html');
+    assert.deepEqual(
+      await page.locator('#current article').evaluateAll((cards) => cards.map((card) => card.id)),
+      [...currentResearch, imageTopic].map((topic) => `research-${topic.id}`),
+    );
+    const entry = page.locator('#research-gallery-test');
+    assert.equal(await entry.locator('img').count(), 1);
+    assert.equal(await entry.locator('.technology-tags').textContent(), '測試技術');
+    assert.equal(await page.locator('#research-thinning-weeding-robot img').count(), 0);
+    assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+    await entry.locator('a').click();
+    await page.waitForFunction(() => document.querySelector('#research-gallery-test'));
+    await page.locator('main img').evaluateAll((images) => images.forEach((image) => image.loading = 'eager'));
+    await page.waitForFunction(() => [...document.querySelectorAll('main img')].every((image) => image.complete && image.naturalWidth > 0));
+    assert.equal(await page.locator('main .research-figure').count(), 4);
+    assert.deepEqual(await page.locator('.research-detail-section h2').allTextContents(),
+      ['研究目的', '系統架構', '實驗照片', '研究方法', '研究圖片']);
+    assert.deepEqual(await page.locator('main figcaption').allTextContents(),
+      ['第一張補充圖', '架構圖說明 <b>安全文字</b>', '測試照片說明', '第二張補充圖']);
+    assert.equal(await page.locator('main figcaption b').count(), 0);
+    const architecture = page.getByAltText('系統架構測試圖', { exact: true });
+    assert.equal(await architecture.evaluate((image) => getComputedStyle(image).objectFit), 'contain');
+    const bounds = await architecture.boundingBox();
+    assert(Math.abs(bounds.width / bounds.height - 4) < 0.02, 'architecture must retain its full aspect ratio');
+    assert.equal(await page.getByAltText('測試照片', { exact: true }).evaluate((image) => getComputedStyle(image).objectFit), 'cover');
+    assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+    const trigger = page.locator('.research-image-button').nth(1);
+    await trigger.focus();
+    await page.keyboard.press('Enter');
+    const viewer = page.getByRole('dialog', { name: '研究圖片放大檢視' });
+    await viewer.waitFor({ state: 'visible' });
+    assert.equal(await viewer.locator('figcaption').textContent(), '架構圖說明 <b>安全文字</b>');
+    assert.equal(await viewer.locator('img').evaluate((image) => getComputedStyle(image).objectFit), 'contain');
+    await page.keyboard.press('Tab');
+    assert(await viewer.evaluate((dialog) => dialog.contains(document.activeElement)));
+    assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+    await page.keyboard.press('Escape');
+    await page.locator('dialog.research-image-viewer').waitFor({ state: 'detached' });
+    assert(await trigger.evaluate((button) => button === document.activeElement));
+    await trigger.click();
+    await page.getByRole('button', { name: '關閉圖片', exact: true }).click();
+    await page.locator('dialog.research-image-viewer').waitFor({ state: 'detached' });
+    await page.locator('.research-image-button').nth(2).click();
+    await viewer.waitFor({ state: 'visible' });
+    assert.equal(await viewer.locator('img').evaluate((image) => getComputedStyle(image).objectFit), 'contain');
+    assert((await viewer.locator('img').getAttribute('src')).endsWith(photograph));
+    await page.mouse.click(0, 0);
+    await page.locator('dialog.research-image-viewer').waitFor({ state: 'detached' });
+    assert.equal(await page.locator('html.research-image-open').count(), 0);
+    if ([1440, 390].includes(width)) {
+      await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }));
+      await page.screenshot({ path: path.join(screenshotDir, `ced-gallery-${width}.png`), fullPage: true });
+    }
+  }
+  // Verify touch activation in an actual mobile browser context.
+  const mobile = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+  const mobilePage = await mobile.newPage();
+  mobilePage.on('pageerror', (error) => errors.push(error.message));
+  await mobilePage.route(/https:\/\//, (route) => route.abort());
+  await mobilePage.route('**/data/research.json', (route) => route.fulfill({ json: [...research, {
+    ...imageTopic, image: 'image/member-placeholder.svg', sections: [], gallery: [],
+  }] }));
+  await mobilePage.goto(base + detailFile(imageTopic));
+  await mobilePage.locator('.research-image-button').tap();
+  await mobilePage.getByRole('dialog').waitFor({ state: 'visible' });
+  await mobilePage.getByRole('button', { name: '關閉圖片', exact: true }).tap();
+  await mobilePage.locator('dialog.research-image-viewer').waitFor({ state: 'detached' });
+  await mobile.close();
+  // Failed figures remove their captions and empty image-only sections.
+  await mockResearch({ ...imageTopic, image: 'image/missing.png', gallery: [
+    { src: 'image/missing.png', caption: '失敗圖說不應留下' },
+  ], sections: [
+    { title: '圖片失敗段落', images: [{ src: 'image/missing.png' }] },
+    { title: '保留文字', paragraphs: ['圖片失敗仍保留文字。'], images: [{ src: 'image/missing.png' }] },
+    { title: '空白圖片', images: [] },
+  ] });
+  await open(detailFile(imageTopic));
+  await page.locator('main img').evaluateAll((images) => images.forEach((image) => image.loading = 'eager'));
+  await page.waitForFunction(() => !document.querySelector('main img'));
+  assert.equal(await page.locator('.research-gallery, .research-figure, figcaption').count(), 0);
+  assert.deepEqual(await page.locator('.research-detail-section h2').allTextContents(), ['保留文字']);
+  await open('areas.html');
+  await page.locator('#research-gallery-test').scrollIntoViewIfNeeded();
+  await page.waitForFunction(() => !document.querySelector('#research-gallery-test img'));
+  assert.equal(await page.locator('#research-gallery-test .research-entry-with-image').count(), 0);
+  // Unsafe URLs are ignored without requesting them; no filename becomes a caption.
+  const unsafePaths = ['https://example.invalid/x.svg', '//example.invalid/x.svg',
+    'javascript:alert(1)', 'data:image/svg+xml,test', '/image/content-diagram.svg',
+    '../outside.svg', 'image\\outside.svg'];
+  await mockResearch({ ...imageTopic, image: undefined, sections: [], gallery: [
+    ...unsafePaths.map((src) => ({ src, caption: '不可顯示' })),
+    { src: diagram },
+  ] });
+  await open(detailFile(imageTopic));
+  assert.equal(await page.locator('main .research-figure').count(), 1);
+  assert.equal(await page.locator('main figcaption').count(), 0);
+  assert(!(await page.locator('.research-image-button').getAttribute('aria-label')).includes('.svg'));
+  assert((await page.locator('main img').getAttribute('src')).endsWith(diagram));
+  // New schema fields reject malformed objects and types, while old fields remain optional.
+  for (const patch of [
+    { gallery: {} }, { gallery: [null] }, { gallery: [{ src: 42 }] },
+    { gallery: [{ src: diagram, caption: 42 }] }, { gallery: [{ src: diagram, alt: [] }] },
+    { gallery: [{ src: diagram, fit: 'stretch' }] },
+    { sections: [{ title: '錯誤圖片', images: 'not-an-array' }] },
+    { sections: [{ title: '錯誤圖片', images: [{ src: diagram, caption: false }] }] },
+  ]) {
+    await mockResearch({ ...imageTopic, ...patch });
+    await page.goto(base + detailFile(imageTopic));
+    await page.waitForFunction(() => document.querySelector('#directory-status button'));
+    assert.equal(await page.locator('[data-section="detail"] article').count(), 0);
+  }
+  await page.unroute('**/data/research.json');
+  await page.unroute('**/image/content-diagram.svg');
+  await page.unroute('**/image/content-photo.svg');
+  // Confirmed cross-cohort research content, with no fabricated photos or URLs.
+  const mowing = research.find((topic) => topic.id === 'mowing-robot');
+  const currentMember = members.find((member) => member.id === 'lin-ruei-jiun');
+  const alumnus = members.find((member) => member.id === 'yan-jia-yuan');
+  const thesis = participations.find((row) => row.memberId === alumnus.id).thesis;
+  assert.equal(currentMember.name, '林睿鈞');
+  assert.equal(alumnus.name, '顏嘉源');
+  assert.equal(alumnus.graduationYear, 2026);
+  assert.equal(thesis.url, undefined);
+  assert(!sourceMembers.find((member) => member.id === currentMember.id).researchIds);
+  for (const row of participations) {
+    assert(members.some((member) => member.id === row.memberId));
+    assert(research.some((topic) => topic.id === row.researchId));
+    assert(!('name' in row) && !('photo' in row) && !('degree' in row));
+  }
+  for (const width of [1440, 1024, 768, 390, 320]) {
+    await page.setViewportSize({ width, height: 900 });
+    await open(detailFile(mowing));
+    assert.deepEqual(await page.locator('.research-detail-section h2').allTextContents(),
+      ['研究特色', '研究圖片', '現階段研究人員', '歷屆研究生與論文']);
+    assert.deepEqual(await page.locator('.research-detail-section').first().locator('li').allTextContents(),
+      ['空拍輔助建圖', '智慧環境感知', '自主導航', '空地協作技術探索']);
+    const current = page.locator('[data-people="current"]');
+    const alumni = page.locator('[data-people="alumni"]');
+    assert.equal(await current.locator('a[data-member-link]').textContent(), currentMember.name);
+    assert(!(await current.textContent()).includes(currentMember.introduction));
+    assert.deepEqual(await current.locator('p').allTextContents(), [
+      '碩士研究生',
+      '研究方向：視覺語言模型、無人機視覺感知、空地協作自主系統',
+    ]);
+    assert((await current.textContent()).includes('碩士研究生'));
+    assert.equal(await alumni.locator('a[data-member-link]').textContent(), alumnus.name);
+    for (const value of ['2026 年畢業', '碩士畢業生', thesis.title,
+      '空拍輔助建圖、語義感知與自主割草機器人導航整合。'])
+      assert((await alumni.textContent()).includes(value));
+    assert.equal(await alumni.locator('.research-thesis a').count(), 0);
+    assert.deepEqual(await alumni.locator('.thesis-keywords li').allTextContents(),
+      ['割草機器人', '空拍機輔助建圖', '語義分割']);
+    assert(!(await page.locator('main').textContent()).includes('參與角色'));
+    assert.equal(await page.getByText(/^指導教授：/).count(), 0);
+    assert.equal(await page.getByText(/^共同指導教授：/).count(), 0);
+    assert.equal(await page.locator('.research-figure').count(), 4);
+    assert.deepEqual(await page.locator('main figcaption').allTextContents(), mowing.gallery.map((image) => image.caption));
+    assert.equal(await page.locator('img[src*="prototype-cutout"]').count(), 0);
+    await page.locator('main img').evaluateAll((images) => images.forEach((image) => image.loading = 'eager'));
+    await page.waitForFunction(() => [...document.querySelectorAll('main img')].every((image) => image.complete && image.naturalWidth > 0));
+    // Mowing's portrait stays left; the other two figures stack on the right.
+    const figures = page.locator('#research-mowing-robot > .research-gallery-block .research-figure');
+    const boxes = [];
+    for (let index = 0; index < 3; index++) boxes.push(await figures.nth(index).boundingBox());
+    const [field, map, perception] = boxes;
+    if (width > 540) {
+      assert(field.x < map.x);
+      assert(Math.abs(map.x - perception.x) < 1);
+      assert(Math.abs(field.y - map.y) < 1);
+      assert(Math.abs(perception.y - map.y - map.height - 24) < 1, 'right column gap must be 24px');
+      assert(Math.abs(map.x - field.x - field.width - 24) < 1, 'column gap must be 24px');
+    } else {
+      assert(Math.abs(field.x - map.x) < 1 && Math.abs(map.x - perception.x) < 1);
+      assert(map.y >= field.y + field.height);
+      assert(perception.y >= map.y + map.height);
+    }
+    for (const image of await figures.locator('img').all()) {
+      assert(await image.evaluate((img) =>
+        getComputedStyle(img).objectFit === 'contain' &&
+        Math.abs(img.width / img.height - img.naturalWidth / img.naturalHeight) < 0.01,
+      ));
+    }
+    for (let index = 0; index < mowing.gallery.length; index++) {
+      const trigger = page.locator('.research-image-button').nth(index);
+      await trigger.click();
+      const viewer = page.locator('dialog.research-image-viewer');
+      await viewer.waitFor({ state: 'visible' });
+      assert((await viewer.locator('img').getAttribute('src')).endsWith(mowing.gallery[index].src));
+      assert.equal(await viewer.locator('figcaption').textContent(), mowing.gallery[index].caption);
+      assert.equal(await viewer.locator('img').evaluate((image) => getComputedStyle(image).objectFit), 'contain');
+      await page.keyboard.press('Escape');
+      await viewer.waitFor({ state: 'detached' });
+    }
+    assert(!(await page.locator('main').textContent()).includes('研究關注議題'));
+    assert(!(await page.locator('main').textContent()).includes('相關參考文獻'));
+    await current.locator('img').evaluate((image) => image.loading = 'eager');
+    await page.waitForFunction(() => {
+      const image = document.querySelector('[data-people="current"] img');
+      return image?.complete && image.naturalWidth > 0;
+    });
+    assert((await current.locator('img').getAttribute('src')).endsWith('member-placeholder.svg'));
+    assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+    if ([1440, 390].includes(width)) {
+      await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }));
+      await page.screenshot({
+        path: path.join(screenshotDir, `ced-mowing-${width === 1440 ? 'desktop' : 'mobile'}.png`),
+        fullPage: true,
+      });
+    }
+    await open('members.html');
+    for (const member of [currentMember, alumnus]) {
+      const card = page.locator(`#member-${member.id}`);
+      assert(await card.isVisible());
+      assert.equal(await card.locator('.badge').count(), 0);
+      assert((await card.textContent()).includes(member.name));
+      if (member.introduction) assert((await card.textContent()).includes(member.introduction));
+      await card.locator('.research-links a').click();
+      await page.waitForURL(new URL(detailFile(mowing), base).href);
+      await open('members.html');
+    }
+    assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+  }
+  // Names, biography, graduation year and grouping come from member master data.
+  await page.route('**/data/members.json', (route) => {
+    const rows = structuredClone(sourceMembers);
+    const member = rows.find((row) => row.id === currentMember.id);
+    member.name = '主資料姓名測試';
+    member.introduction = '主資料介紹測試';
+    rows.find((row) => row.id === alumnus.id).graduationYear = 2027;
+    return route.fulfill({ json: rows });
+  });
+  await open(detailFile(mowing));
+  assert((await page.locator('[data-people="current"]').textContent()).includes('主資料姓名測試'));
+  assert(!(await page.locator('[data-people="current"]').textContent()).includes('主資料介紹測試'));
+  await open('members.html');
+  assert((await page.locator(`#member-${currentMember.id}`).textContent()).includes('主資料介紹測試'));
+  await open(detailFile(mowing));
+  assert((await page.locator('[data-people="alumni"]').textContent()).includes('2027 年畢業'));
+  await page.unroute('**/data/members.json');
+  await page.route('**/data/members.json', (route) => {
+    const rows = structuredClone(sourceMembers);
+    const member = rows.find((row) => row.id === currentMember.id);
+    member.status = 'alumni';
+    member.graduationYear = 2027;
+    return route.fulfill({ json: rows });
+  });
+  await open(detailFile(mowing));
+  assert.equal(await page.locator('[data-people="current"]').count(), 0);
+  assert.equal(await page.locator('[data-people="alumni"] a[data-member-link]').count(), 2);
+  await page.unroute('**/data/members.json');
+  // The same participation mechanism works on another project, without hardcoded names.
+  const otherProject = { id: 'cohort-test', title: '跨專案測試', category: 'current' };
+  await page.route('**/data/research.json', (route) =>
+    route.fulfill({ json: [...research, otherProject] }),
+  );
+  await page.route('**/data/participations.json', (route) => route.fulfill({ json: [
+    ...participations,
+    { id: 'cohort-relation', researchId: otherProject.id, memberId: currentMember.id,
+      role: '共同研究', researchYear: 2026, focus: '關聯方向測試' },
+  ] }));
+  await open(detailFile(otherProject));
+  const peopleText = await page.locator('[data-people="current"]').textContent();
+  for (const value of [currentMember.name, '關聯方向測試'])
+    assert(peopleText.includes(value));
+  assert(!peopleText.includes('共同研究'));
+  assert(!peopleText.includes('研究年份'));
+  assert(!peopleText.includes(currentMember.introduction));
+  await open('members.html');
+  assert.equal(await page.locator(`#member-${currentMember.id} .research-links a`).count(), 2);
+  await page.unroute('**/data/research.json');
+  await page.unroute('**/data/participations.json');
+  // Explicit co-advisors are independent of the preserved general advisor field.
+  for (const coAdvisors of [undefined, [], [' '], ['共同指導測試教授', '第二位共同指導教授']]) {
+    await page.route('**/data/participations.json', (route) => {
+      const rows = structuredClone(participations);
+      const record = rows.find((row) => row.memberId === alumnus.id);
+      record.thesis.coAdvisors = coAdvisors;
+      record.thesis.url = 'https://example.org/confirmed-thesis.pdf';
+      return route.fulfill({ json: rows });
+    });
+    await open(detailFile(mowing));
+    assert.equal(await page.getByText(/^指導教授：/).count(), 0);
+    const explicit = coAdvisors?.filter((name) => name.trim()) || [];
+    assert.equal(await page.getByText(/^共同指導教授：/).count(), explicit.length ? 1 : 0);
+    if (explicit.length)
+      assert.equal(await page.getByText(/^共同指導教授：/).textContent(), `共同指導教授：${explicit.join('、')}`);
+    assert.equal(await page.locator('.research-thesis a').getAttribute('href'), 'https://example.org/confirmed-thesis.pdf');
+    await page.unroute('**/data/participations.json');
+  }
+  // Publication URLs are optional and cannot execute scripts.
+  await page.route('**/data/participations.json', (route) => {
+    const rows = structuredClone(participations);
+    rows.find((row) => row.memberId === alumnus.id).thesis.url = 'javascript:alert(1)';
+    return route.fulfill({ json: rows });
+  });
+  await page.route('**/data/research.json', (route) => {
+    const rows = structuredClone(research);
+    rows.find((row) => row.id === mowing.id).references = [
+      { title: '參考文獻測試 <script>test</script>', url: 'javascript:alert(1)' },
+    ];
+    return route.fulfill({ json: rows });
+  });
+  await open(detailFile(mowing));
+  assert.equal(await page.locator('.research-thesis a, main script').count(), 0);
+  assert((await page.locator('main').textContent()).includes('參考文獻測試 <script>test</script>'));
+  await page.unroute('**/data/research.json');
+  await page.unroute('**/data/participations.json');
+  // Invalid and duplicate relations fail clearly and can be retried.
+  for (const rows of [
+    [...participations, { ...participations[0], id: 'duplicate-relation' }],
+    [{ ...participations[0], memberId: 'unknown-member' }],
+    [{ ...participations[0], researchId: 'unknown-research' }],
+    [{ ...participations[0], researchYear: '2026' }],
+    [{ ...participations[0], thesis: { title: 42 } }],
+    [{ ...participations[0], thesis: { title: '測試', keywords: 'not-an-array' } }],
+    [{ ...participations[0], thesis: { title: '測試', keywords: [42] } }],
+    [{ ...participations[0], thesis: { title: '測試', coAdvisors: 'not-an-array' } }],
+    [{ ...participations[0], thesis: { title: '測試', coAdvisors: [null] } }],
+  ]) {
+    await page.route('**/data/participations.json', (route) => route.fulfill({ json: rows }));
+    await page.goto(base + detailFile(mowing));
+    await page.waitForFunction(() => document.querySelector('#directory-status button'));
+    await page.unroute('**/data/participations.json');
+  }
+  await page.locator('#directory-status button').click();
+  await page.waitForFunction(() => document.querySelector('[data-people="current"]'));
   // Missing portrait, optional image, and a dangling research reference.
   await page.route('**/data/members.json', (route) => {
     const rows = structuredClone(members);
@@ -492,7 +868,7 @@ for (const topic of research) {
       topic.title,
     );
     assert.equal(page.url(), new URL(detailFile(topic), base).href);
-    assert.equal(await page.locator('.research-detail-section h2').count(), 3);
+    assert.equal(await page.locator('.research-detail-section h2').count(), 3 + ((topic.gallery || []).some((image) => image.src !== topic.image) ? 1 : 0));
     await page.locator('main a').filter({ hasText: '返回研究領域' }).click();
     await page.waitForFunction(
       (id) => document.getElementById(`research-${id}`),
@@ -547,7 +923,7 @@ for (const topic of research) {
   assert.deepEqual(errors, []);
   await browser.close();
   console.log(
-    'PASS: data relations, 5 viewport sizes, all bidirectional anchors, shared partials, existing pages, 3 current projects and detail navigation, historical research, all shared details and legacy redirects, query validation, JSON-only research, safe text, optional fields, relations, alumni, image fallback, missing references, empty/error/retry states.',
+    'PASS: data relations, 5 viewport sizes, all bidirectional anchors, shared partials, existing pages, 3 current projects and detail navigation, historical research, all shared details and legacy redirects, query validation, JSON-only research, safe text, optional fields, relations, research galleries/captions/section order, image validation/failures, keyboard/touch image viewer, confirmed members and cross-cohort participations/thesis, concise profiles and thesis keywords/co-advisors, member master data joins, alumni, image fallback, missing references, empty/error/retry states.',
   );
 })().catch((e) => {
   console.error(e);
