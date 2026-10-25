@@ -364,7 +364,9 @@ export function researchDetail(topic, model) {
   el.id = `research-${topic.id}`;
   const meta = researchMeta(topic);
   if (meta.children.length) el.append(meta);
-  const image = researchFigure({ src: topic.image }, `${topic.title}代表圖片`);
+  // Reuse gallery metadata for a representative image, without showing it twice.
+  const featured = (topic.gallery || []).find((item) => item.src === topic.image);
+  const image = researchFigure(featured || { src: topic.image }, `${topic.title}代表圖片`);
   if (image) el.append(image);
   if (topic.summary?.trim())
     el.append(
@@ -396,7 +398,7 @@ export function researchDetail(topic, model) {
     'research-detail-section research-gallery-block',
   );
   const gallery = researchGallery(
-    topic.gallery,
+    (topic.gallery || []).filter((item) => item.src !== topic.image),
     `${topic.title}研究圖片`,
     () => galleryBlock.remove(),
   );

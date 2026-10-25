@@ -82,6 +82,29 @@
           "空地協作技術探索"
         ]
       }
+    ],
+    "image": "image/research/mowing-robot/prototype-photo.jpg",
+    "gallery": [
+      {
+        "src": "image/research/mowing-robot/prototype-photo.jpg",
+        "alt": "自主割草機器人原型機",
+        "caption": "自主割草機器人原型機｜來源：顏嘉源（2026）碩士論文相關研究素材。"
+      },
+      {
+        "src": "image/research/mowing-robot/field-test.jpeg",
+        "alt": "割草機器人於戶外草地的研究照片",
+        "caption": "戶外研究照片｜來源：顏嘉源（2026）碩士論文相關研究素材。"
+      },
+      {
+        "src": "image/research/mowing-robot/orthophoto.jpeg",
+        "alt": "草皮環境的空拍正射影像",
+        "caption": "空拍建圖成果｜來源：顏嘉源（2026）碩士論文相關研究素材。"
+      },
+      {
+        "src": "image/research/mowing-robot/segmentation.png",
+        "alt": "空拍影像與語義分割結果對照",
+        "caption": "環境感知成果｜來源：顏嘉源（2026）碩士論文相關研究素材。"
+      }
     ]
   },
   {

@@ -147,16 +147,19 @@ CED/
 
 所有專案使用一致的人員展示規則：現階段人員顯示姓名連結、照片、學籍身分與研究方向，不顯示參與角色、研究年份或長篇個人介紹。長篇 `members.introduction` 保留，研究成員頁繼續顯示。歷屆區保留姓名、學位與畢業年份、貢獻、論文完整題名、確認關鍵字與正式論文連結；不顯示參與角色或一般指導教授。只有 `thesis.coAdvisors` 有非空文字時，才顯示「共同指導教授」，不從 `advisor` 推定。
 
-割草機器人待取得正式圖檔後，才將下列圖片加入 `gallery` 或 `sections[].images`。本表僅為收件與維護規劃，不代表檔案已存在，也不會啟用圖片展示：
+割草機器人目前使用以下原始研究素材，存放於 `image/research/mowing-robot/`，圖說皆標明「來源：顏嘉源（2026）碩士論文相關研究素材」。未加入詳細演算法、參數或實作流程：
 
-| 預定站內路徑 | 確認圖說 | 顏嘉源碩士論文圖號 |
-| --- | --- | --- |
-| `image/research/mowing-robot/prototype.png` | 自主割草機器人原型機 | 圖 2-1 |
-| `image/research/mowing-robot/orthophoto.png` | 草皮環境正射影像 | 圖 4-5 |
-| `image/research/mowing-robot/segmentation.png` | 空拍正射影像語義分割結果 | 圖 4-11 |
-| `image/research/mowing-robot/navigation-result.png` | 完整草皮環境覆蓋路徑行走結果 | 圖 5-3 |
+| 檔名 | 用途／圖說 |
+| --- | --- |
+| `prototype-photo.jpg` | 研究代表圖片／自主割草機器人原型機 |
+| `field-test.jpeg` | 圖集／戶外研究照片 |
+| `orthophoto.jpeg` | 圖集／空拍建圖成果 |
+| `segmentation.png` | 圖集／環境感知成果 |
+| `prototype-cutout.png` | 原檔保留備用，未加入研究圖片欄位，不顯示 |
 
-研究可選填 `references` 陣列，每筆包含已確認的 `title` 與選填 `url`；沒有資料不顯示參考文獻區塊。論文與文獻僅接受安全 HTTPS 網址或站內網址，不安全網址只顯示文字。割草機器人目前沒有確認的照片或參考文獻，對應區塊保持隱藏。`gallery` 與 `sections[].images` 繼續沿用。
+代表圖使用既有 `image` 欄位；`gallery` 保存四張圖片的替代文字與圖說。當 `gallery` 的 `src` 與 `image` 相同，詳細頁會使用該筆的圖說與替代文字作為代表圖，並從後續圖集略過，避免重複顯示。所有研究圖片完整顯示原圖，可使用既有放大檢視功能。原始檔案不裁切、不重新壓縮。
+
+研究可選填 `references` 陣列，每筆包含已確認的 `title` 與選填 `url`；沒有資料不顯示參考文獻區塊。論文與文獻僅接受安全 HTTPS 網址或站內網址，不安全網址只顯示文字。割草機器人已加入確認的研究圖片；尚未提供確認的參考文獻，因此文獻區塊保持隱藏。`gallery` 與 `sections[].images` 繼續沿用。
 
 ## 原始內容保留
 

@@ -56,7 +56,8 @@ for (const topic of research) {
     assert(topic.example);
     assert(topic.title.includes('範例'));
   }
-  assert(!topic.image);
+  if (topic.image) assert(fs.existsSync(path.join(root, topic.image)));
+  for (const image of topic.gallery || []) assert(fs.existsSync(path.join(root, image.src)));
 }
 (async () => {
   const base = process.env.CED_TEST_BASE || 'http://127.0.0.1:8000/';
@@ -230,7 +231,7 @@ for (const topic of research) {
       if (topic.category === 'current') {
         assert.equal(await page.locator('main h1').textContent(), topic.title);
         assert.equal(await page.title(), `${topic.title} | CED Lab`);
-        assert.equal(await page.locator('.research-detail-section').count(), 3);
+        assert.equal(await page.locator('.research-detail-section').count(), 3 + ((topic.gallery || []).some((image) => image.src !== topic.image) ? 1 : 0));
         assert.equal(
           await page.locator('.sample-notice, .badge').count(),
           0,
@@ -239,7 +240,7 @@ for (const topic of research) {
         assert.equal(await page.locator('main h3').textContent(), topic.title);
       }
       assert.equal(await page.locator('main img').count(),
-        topic.id === 'mowing-robot' ? 1 : 0);
+        topic.id === 'mowing-robot' ? 1 + (topic.image ? 1 : 0) + (topic.gallery || []).filter((image) => image.src !== topic.image).length : 0);
       assert.equal(
         await page
           .locator(
@@ -481,11 +482,11 @@ for (const topic of research) {
     await page.waitForFunction(() => document.querySelector('#research-gallery-test'));
     await page.locator('main img').evaluateAll((images) => images.forEach((image) => image.loading = 'eager'));
     await page.waitForFunction(() => [...document.querySelectorAll('main img')].every((image) => image.complete && image.naturalWidth > 0));
-    assert.equal(await page.locator('main .research-figure').count(), 5);
+    assert.equal(await page.locator('main .research-figure').count(), 4);
     assert.deepEqual(await page.locator('.research-detail-section h2').allTextContents(),
       ['研究目的', '系統架構', '實驗照片', '研究方法', '研究圖片']);
     assert.deepEqual(await page.locator('main figcaption').allTextContents(),
-      ['架構圖說明 <b>安全文字</b>', '測試照片說明', '第一張補充圖', '第二張補充圖']);
+      ['第一張補充圖', '架構圖說明 <b>安全文字</b>', '測試照片說明', '第二張補充圖']);
     assert.equal(await page.locator('main figcaption b').count(), 0);
     const architecture = page.getByAltText('系統架構測試圖', { exact: true });
     assert.equal(await architecture.evaluate((image) => getComputedStyle(image).objectFit), 'contain');
@@ -600,7 +601,7 @@ for (const topic of research) {
     await page.setViewportSize({ width, height: 900 });
     await open(detailFile(mowing));
     assert.deepEqual(await page.locator('.research-detail-section h2').allTextContents(),
-      ['研究特色', '現階段研究人員', '歷屆研究生與論文']);
+      ['研究特色', '研究圖片', '現階段研究人員', '歷屆研究生與論文']);
     assert.deepEqual(await page.locator('.research-detail-section').first().locator('li').allTextContents(),
       ['空拍輔助建圖', '智慧環境感知', '自主導航', '空地協作技術探索']);
     const current = page.locator('[data-people="current"]');
@@ -622,7 +623,22 @@ for (const topic of research) {
     assert(!(await page.locator('main').textContent()).includes('參與角色'));
     assert.equal(await page.getByText(/^指導教授：/).count(), 0);
     assert.equal(await page.getByText(/^共同指導教授：/).count(), 0);
-    assert.equal(await page.locator('.research-gallery, .research-figure').count(), 0);
+    assert.equal(await page.locator('.research-figure').count(), 4);
+    assert.deepEqual(await page.locator('main figcaption').allTextContents(), mowing.gallery.map((image) => image.caption));
+    assert.equal(await page.locator('img[src*="prototype-cutout"]').count(), 0);
+    await page.locator('main img').evaluateAll((images) => images.forEach((image) => image.loading = 'eager'));
+    await page.waitForFunction(() => [...document.querySelectorAll('main img')].every((image) => image.complete && image.naturalWidth > 0));
+    for (let index = 0; index < mowing.gallery.length; index++) {
+      const trigger = page.locator('.research-image-button').nth(index);
+      await trigger.click();
+      const viewer = page.locator('dialog.research-image-viewer');
+      await viewer.waitFor({ state: 'visible' });
+      assert((await viewer.locator('img').getAttribute('src')).endsWith(mowing.gallery[index].src));
+      assert.equal(await viewer.locator('figcaption').textContent(), mowing.gallery[index].caption);
+      assert.equal(await viewer.locator('img').evaluate((image) => getComputedStyle(image).objectFit), 'contain');
+      await page.keyboard.press('Escape');
+      await viewer.waitFor({ state: 'detached' });
+    }
     assert(!(await page.locator('main').textContent()).includes('研究關注議題'));
     assert(!(await page.locator('main').textContent()).includes('相關參考文獻'));
     await current.locator('img').evaluate((image) => image.loading = 'eager');
@@ -830,7 +846,7 @@ for (const topic of research) {
       topic.title,
     );
     assert.equal(page.url(), new URL(detailFile(topic), base).href);
-    assert.equal(await page.locator('.research-detail-section h2').count(), 3);
+    assert.equal(await page.locator('.research-detail-section h2').count(), 3 + ((topic.gallery || []).some((image) => image.src !== topic.image) ? 1 : 0));
     await page.locator('main a').filter({ hasText: '返回研究領域' }).click();
     await page.waitForFunction(
       (id) => document.getElementById(`research-${id}`),
