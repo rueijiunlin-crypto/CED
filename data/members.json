@@ -92,7 +92,9 @@
     "degree": "master",
     "status": "current",
     "example": false,
-    "introduction": "以視覺語言模型與無人機視覺感知為研究核心，探討空拍影像的即時傳輸、場景理解及目標辨識技術，並結合視覺目標定位與影像分割方法，發展智慧化環境感知能力。未來將探索相關技術於空拍機與地面機器人協作系統中的應用。"
+    "introduction": "以視覺語言模型與無人機視覺感知為研究核心，探討空拍影像的即時傳輸、場景理解及目標辨識技術，並結合視覺目標定位與影像分割方法，發展智慧化環境感知能力。未來將探索相關技術於空拍機與地面機器人協作系統中的應用。",
+    "researchTopic": "視覺語言模型與空地協作自主系統",
+    "researchFocus": "視覺語言模型、無人機視覺感知、空地協作"
   },
   {
     "id": "yan-jia-yuan",
@@ -100,6 +102,7 @@
     "degree": "master",
     "status": "alumni",
     "graduationYear": 2026,
-    "example": false
+    "example": false,
+    "researchTopic": "自主割草機器人導航框架"
   }
 ]

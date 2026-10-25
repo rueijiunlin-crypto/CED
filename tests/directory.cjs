@@ -114,13 +114,13 @@ for (const topic of research) {
       );
       if (file === 'members.html') {
         assert.equal(await page.locator('#masters article').count(),
-          members.filter((member) => member.status === 'current' && member.degree === 'master').length);
+          members.filter((member) => member.status === 'current' && ['master', 'phd'].includes(member.degree)).length);
         const cols = await page
           .locator('[data-section="masters"]')
           .evaluate(
             (el) => getComputedStyle(el).gridTemplateColumns.split(' ').length,
           );
-        assert.equal(cols, width > 800 ? 3 : width > 540 ? 2 : 1);
+        assert.equal(cols, 1);
       }
       if (file === 'areas.html') {
         assert.deepEqual(
@@ -185,7 +185,7 @@ for (const topic of research) {
     await page.locator('.alumni-year summary').allTextContents(),
     [...new Set(members.filter((member) => member.status === 'alumni').map((member) => member.graduationYear))]
       .sort((a, b) => b - a)
-      .map((year) => `${year} · ${members.filter((member) => member.status === 'alumni' && member.graduationYear === year).length} 位`),
+      .map((year) => `${year} 年畢業 · ${members.filter((member) => member.status === 'alumni' && member.graduationYear === year).length} 位`),
   );
   assert.equal(
     await page
@@ -582,6 +582,112 @@ for (const topic of research) {
   await page.unroute('**/data/research.json');
   await page.unroute('**/image/content-diagram.svg');
   await page.unroute('**/image/content-photo.svg');
+  // Member cards use concise profiles and preserve the underlying official data.
+  const profile = members.find((member) => member.id === 'lin-ruei-jiun');
+  const graduate = members.find((member) => member.id === 'yan-jia-yuan');
+  for (const width of [1440, 1024, 768, 390, 320]) {
+    await page.setViewportSize({ width, height: 900 });
+    await open('members.html');
+    assert.deepEqual(await page.locator('main > section > h2').allTextContents(),
+      ['在籍研究生', '大學部專題團隊', '歷屆畢業成員']);
+    const card = page.locator('#member-lin-ruei-jiun');
+    assert.equal(await card.locator('h3').textContent(), '林睿鈞');
+    assert.equal(await card.locator('.member-meta').textContent(), '碩士研究生');
+    assert.deepEqual(await card.locator('dd').allTextContents(), [
+      '視覺語言模型與空地協作自主系統',
+      '視覺語言模型、無人機視覺感知、空地協作',
+    ]);
+    assert(!(await card.textContent()).includes(profile.introduction));
+    assert.equal(await page.getByText(/^參與角色：|^指導教授：/).count(), 0);
+    assert.equal(await page.getByText('共同指導教授', { exact: true }).count(), 0);
+    assert((await card.locator('img').getAttribute('src')).endsWith('member-placeholder.svg'));
+    const imageBox = await card.locator('img').boundingBox();
+    const contentBox = await card.locator('.member-card-content').boundingBox();
+    assert.equal(imageBox.width, width > 540 ? 160 : 112);
+    assert(Math.abs(imageBox.width / imageBox.height - 4 / 3) < 0.01);
+    if (width > 540) {
+      assert(contentBox.x > imageBox.x + imageBox.width);
+      assert(Math.abs(contentBox.y - imageBox.y) < 1);
+    } else {
+      assert(contentBox.y >= imageBox.y + imageBox.height);
+      assert(Math.abs(contentBox.x - imageBox.x) < 1);
+    }
+    assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+    const alumniCard = page.locator('#member-yan-jia-yuan');
+    assert((await alumniCard.textContent()).includes('碩士畢業生'));
+    assert((await alumniCard.textContent()).includes('自主割草機器人導航框架'));
+    assert((await alumniCard.locator('xpath=ancestor::details').locator('summary').textContent()).includes('2026 年畢業'));
+    assert(!(await alumniCard.textContent()).includes(participations.find((row) => row.memberId === graduate.id).thesis.title));
+    for (const group of groups.filter((group) => group.status === 'current')) {
+      const groupCard = page.locator(`#group-${group.id}`);
+      for (const id of group.researchIds || []) {
+        const topic = research.find((topic) => topic.id === id);
+        assert((await groupCard.textContent()).includes(topic.title));
+        if (topic.summary) assert((await groupCard.textContent()).includes(topic.summary));
+      }
+      assert.equal(await groupCard.locator('.badge').count(), group.example ? 1 : 0);
+    }
+    if ([1440, 390].includes(width)) {
+      await page.locator('main img').evaluateAll((images) => images.forEach((image) => image.loading = 'eager'));
+      await page.waitForFunction(() => [...document.querySelectorAll('main img')].every((image) => image.complete));
+      await page.screenshot({ path: path.join(screenshotDir, `ced-members-after-${width}.png`), fullPage: true });
+      await card.screenshot({ path: path.join(screenshotDir, `ced-member-lin-${width}.png`) });
+    }
+  }
+  // New fields are optional; unknown graduation years are grouped together last.
+  await page.route('**/data/members.json', (route) => route.fulfill({ json: [
+    ...sourceMembers,
+    { id: 'optional-phd', name: '選填資料測試', degree: 'phd', status: 'current' },
+    { id: 'unknown-year-a', name: '年度測試甲', degree: 'master', status: 'alumni' },
+    { id: 'unknown-year-b', name: '年度測試乙', degree: 'master', status: 'alumni' },
+  ] }));
+  await page.route('**/data/groups.json', (route) => route.fulfill({ json: [
+    ...groups, { id: 'optional-group', name: '精簡團隊測試', status: 'current', image: 'image/missing.png' },
+  ] }));
+  await open('members.html');
+  const sparse = page.locator('#member-optional-phd');
+  assert(await sparse.isVisible());
+  assert.equal(await sparse.locator('.member-meta').textContent(), '博士研究生');
+  assert.equal(await sparse.locator('.member-fields, .research-links').count(), 0);
+  const lastYear = page.locator('.alumni-year').last();
+  assert.equal(await lastYear.locator('summary').textContent(), '年度待補 · 2 位');
+  assert.equal(await lastYear.locator('article').count(), 2);
+  await lastYear.locator('summary').focus();
+  await page.keyboard.press('Enter');
+  assert(!(await lastYear.evaluate((details) => details.open)));
+  await page.keyboard.press('Enter');
+  assert(await lastYear.evaluate((details) => details.open));
+  const sparseGroup = page.locator('#group-optional-group');
+  await sparseGroup.scrollIntoViewIfNeeded();
+  await page.waitForFunction(() => !document.querySelector('#group-optional-group img'));
+  assert.equal(await sparseGroup.locator('.member-fields, .research-links').count(), 0);
+  assert(!(await sparseGroup.getAttribute('class')).includes('member-card-with-image'));
+  assert.equal(await sparseGroup.textContent(), '精簡團隊測試');
+  assert(!(await page.locator('main').textContent()).includes('undefined'));
+  await page.unroute('**/data/members.json');
+  await page.unroute('**/data/groups.json');
+  // Co-advisors are reused from participation records, never guessed from advisor.
+  await page.route('**/data/participations.json', (route) => {
+    const rows = structuredClone(participations);
+    rows.find((row) => row.memberId === profile.id).thesis = {
+      title: '不得重複顯示的完整論文', advisor: '不顯示的一般指導教授', coAdvisors: ['共同指導測試教授'],
+    };
+    return route.fulfill({ json: rows });
+  });
+  await open('members.html');
+  const concise = await page.locator('#member-lin-ruei-jiun').textContent();
+  assert(concise.includes('共同指導教授') && concise.includes('共同指導測試教授'));
+  assert(!concise.includes('不顯示的一般指導教授') && !concise.includes('不得重複顯示的完整論文'));
+  await page.unroute('**/data/participations.json');
+  for (const field of ['researchTopic', 'researchFocus']) {
+    await page.route('**/data/members.json', (route) => {
+      const rows = structuredClone(sourceMembers); rows[0][field] = 42;
+      return route.fulfill({ json: rows });
+    });
+    await page.goto(base + 'members.html');
+    await page.waitForFunction(() => document.querySelector('#directory-status button'));
+    await page.unroute('**/data/members.json');
+  }
   // Confirmed cross-cohort research content, with no fabricated photos or URLs.
   const mowing = research.find((topic) => topic.id === 'mowing-robot');
   const currentMember = members.find((member) => member.id === 'lin-ruei-jiun');
@@ -683,7 +789,7 @@ for (const topic of research) {
       assert(await card.isVisible());
       assert.equal(await card.locator('.badge').count(), 0);
       assert((await card.textContent()).includes(member.name));
-      if (member.introduction) assert((await card.textContent()).includes(member.introduction));
+      if (member.introduction) assert(!(await card.textContent()).includes(member.introduction));
       await card.locator('.research-links a').click();
       await page.waitForURL(new URL(detailFile(mowing), base).href);
       await open('members.html');
@@ -703,7 +809,8 @@ for (const topic of research) {
   assert((await page.locator('[data-people="current"]').textContent()).includes('主資料姓名測試'));
   assert(!(await page.locator('[data-people="current"]').textContent()).includes('主資料介紹測試'));
   await open('members.html');
-  assert((await page.locator(`#member-${currentMember.id}`).textContent()).includes('主資料介紹測試'));
+  assert(!(await page.locator(`#member-${currentMember.id}`).textContent()).includes('主資料介紹測試'));
+  assert.equal(sourceMembers.find((member) => member.id === currentMember.id).introduction, currentMember.introduction);
   await open(detailFile(mowing));
   assert((await page.locator('[data-people="alumni"]').textContent()).includes('2027 年畢業'));
   await page.unroute('**/data/members.json');
@@ -923,7 +1030,7 @@ for (const topic of research) {
   assert.deepEqual(errors, []);
   await browser.close();
   console.log(
-    'PASS: data relations, 5 viewport sizes, all bidirectional anchors, shared partials, existing pages, 3 current projects and detail navigation, historical research, all shared details and legacy redirects, query validation, JSON-only research, safe text, optional fields, relations, research galleries/captions/section order, image validation/failures, keyboard/touch image viewer, confirmed members and cross-cohort participations/thesis, concise profiles and thesis keywords/co-advisors, member master data joins, alumni, image fallback, missing references, empty/error/retry states.',
+    'PASS: data relations, 5 viewport sizes, all bidirectional anchors, shared partials, existing pages, 3 current projects and detail navigation, historical research, all shared details and legacy redirects, query validation, JSON-only research, safe text, optional fields, relations, research galleries/captions/section order, image validation/failures, keyboard/touch image viewer, confirmed members and cross-cohort participations/thesis, concise profiles and thesis keywords/co-advisors, horizontal member cards/topics/focus, optional groups and unknown graduation years, member master data joins, alumni, image fallback, missing references, empty/error/retry states.',
   );
 })().catch((e) => {
   console.error(e);

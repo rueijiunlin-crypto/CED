@@ -46,7 +46,7 @@ try {
     fillGrid(
       section('masters'),
       model.members.filter(
-        (m) => m.status === 'current' && m.degree === 'master',
+        (m) => m.status === 'current' && ['master', 'phd'].includes(m.degree),
       ),
       (m) => memberCard(m, model),
       'member-grid',

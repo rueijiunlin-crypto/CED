@@ -65,36 +65,62 @@ function researchLinks(row, model) {
   }
   return list;
 }
-function appendImage(card, img) {
-  if (img) card.prepend(img);
+function peopleCard(id, title, example, image) {
+  const el = card(id, title, example);
+  el.classList.add('member-card');
+  const content = node('div', 'member-card-content');
+  content.append(...el.childNodes);
+  if (image) {
+    el.classList.add('member-card-with-image');
+    el.append(image);
+    image.addEventListener('error', () => {
+      if (!image.isConnected) el.classList.remove('member-card-with-image');
+    });
+  }
+  el.append(content);
+  return { el, content };
+}
+function detailField(label, value) {
+  if (typeof value !== 'string' || !value.trim()) return null;
+  const row = node('div', 'member-field');
+  row.append(node('dt', '', label), node('dd', '', value));
+  return row;
+}
+function appendField(fields, label, value) {
+  const row = detailField(label, value);
+  if (row) fields.append(row);
 }
 export function memberCard(member, model) {
-  const el = card(`member-${member.id}`, member.name, member.example);
-  if (member.status === 'current' || member.photo)
-    appendImage(el, photo(member.photo, `${member.name}的照片`, true));
-  const degree = { master: '碩士', phd: '博士' }[member.degree];
-  const label = [member.example ? degree : memberIdentity(member), member.grade]
-    .filter(Boolean).join(' · ');
-  if (label) el.append(node('p', 'member-meta', label));
-  if (member.introduction?.trim())
-    el.append(node('p', 'muted', member.introduction));
+  const image = member.status === 'current' || member.photo
+    ? photo(member.photo, `${member.name}的照片`, true) : null;
+  const { el, content } = peopleCard(`member-${member.id}`, member.name, member.example, image);
+  const label = [memberIdentity(member), member.grade].filter(Boolean).join(' · ');
+  content.append(node('p', 'member-meta', label));
+  const fields = node('dl', 'member-fields');
+  appendField(fields, '研究主題', member.researchTopic);
+  appendField(fields, '研究方向', member.researchFocus);
+  const coAdvisors = [...new Set(model.participations
+    .filter((row) => row.memberId === member.id)
+    .flatMap((row) => row.thesis?.coAdvisors || [])
+    .map((name) => name.trim()).filter(Boolean))];
+  appendField(fields, '共同指導教授', coAdvisors.join('、'));
+  if (fields.children.length) content.append(fields);
   const links = researchLinks(member, model);
   if (links.children.length)
-    el.append(node('p', 'field-label', '研究方向 · 點選查看研究介紹'), links);
+    content.append(node('p', 'field-label', '相關研究'), links);
   return el;
 }
 export function groupCard(group, model) {
-  const el = card(`group-${group.id}`, group.name, group.example);
-  appendImage(el, photo(group.image, `${group.name}代表照片`));
-  el.append(
-    node('p', 'muted', `組員：${group.memberNames.join('、') || '待補'}`),
-  );
-  el.append(researchLinks(group, model));
-  // Description belongs to the research record, never duplicated in groups.json.
-  for (const id of group.researchIds || []) {
-    const topic = model.researchById.get(id);
-    if (topic?.summary) el.append(node('p', 'muted', topic.summary));
-  }
+  const { el, content } = peopleCard(`group-${group.id}`, group.name, group.example,
+    photo(group.image, `${group.name}代表圖片`));
+  const fields = node('dl', 'member-fields');
+  appendField(fields, '成員', (group.memberNames || []).join('、'));
+  const topics = (group.researchIds || []).map((id) => model.researchById.get(id)).filter(Boolean);
+  appendField(fields, '研究主題', topics.map((topic) => topic.title).join('、'));
+  appendField(fields, '研究方向', topics.map((topic) => topic.summary).filter(Boolean).join(' '));
+  if (fields.children.length) content.append(fields);
+  const links = researchLinks(group, model);
+  if (links.children.length) content.append(node('p', 'field-label', '相關研究'), links);
   return el;
 }
 function relatedPeople(topic, model) {
@@ -118,7 +144,8 @@ function relatedPeople(topic, model) {
     li.append(
       link(group.name, new URL(`members.html#group-${group.id}`, ROOT).href),
     );
-    li.append(node('span', 'muted', `：${group.memberNames.join('、')}`));
+    if (group.memberNames?.length)
+      li.append(node('span', 'muted', `：${group.memberNames.join('、')}`));
     people.append(li);
   }
   return people;
@@ -457,7 +484,7 @@ export function renderAlumni(container, model) {
       node(
         'summary',
         '',
-        `${year ?? '年度待補'} · ${years.get(year).length} 位`,
+        `${year === null ? '年度待補' : `${year} 年畢業`} · ${years.get(year).length} 位`,
       ),
     );
     const grid = node('div');
