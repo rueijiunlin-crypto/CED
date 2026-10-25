@@ -174,3 +174,95 @@
     transition: none;
   }
 }
+
+/* Member-only layouts reuse the lab theme without changing research pages. */
+.members-page .directory-grid,
+.members-page .directory-grid.member-grid {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 20px;
+}
+
+.members-page .member-card {
+  padding: 28px 30px;
+  border: 1px solid rgba(2, 8, 23, 0.05);
+  border-radius: var(--radius);
+  background: var(--card);
+  box-shadow: var(--shadow-sm);
+}
+
+.members-page .member-card-with-image {
+  display: grid;
+  grid-template-columns: 160px minmax(0, 1fr);
+  align-items: start;
+  gap: 28px;
+}
+
+.members-page .member-card-content {
+  min-width: 0;
+}
+
+.members-page .member-card h3 {
+  margin: 0 0 8px;
+  color: var(--ink);
+  font-size: clamp(20px, 2.1vw, 24px);
+  line-height: 1.65;
+}
+
+.members-page .member-card .badge {
+  margin-bottom: 8px;
+}
+
+.members-page .member-card > img {
+  width: 160px;
+  height: 120px;
+  margin: 0;
+}
+
+.members-page .member-fields {
+  margin: 16px 0;
+}
+
+.members-page .member-field {
+  margin: 12px 0;
+}
+
+.members-page .member-field dt {
+  margin-bottom: 4px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.members-page .member-field dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.members-page .member-field:first-child dd {
+  color: var(--ink);
+  font-weight: 500;
+}
+
+.members-page .field-label {
+  margin-bottom: 6px;
+}
+
+.members-page .alumni-year summary {
+  color: var(--brand-700);
+  font-weight: 700;
+}
+
+@media (max-width: 540px) {
+  .members-page .member-card {
+    padding: 22px 20px;
+  }
+
+  .members-page .member-card-with-image {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+  }
+
+  .members-page .member-card > img {
+    width: 112px;
+    height: 84px;
+  }
+}

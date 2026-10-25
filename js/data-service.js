@@ -42,6 +42,7 @@ async function fetchCollection(name) {
     }
     if (
       name === 'groups' &&
+      row.memberNames !== undefined &&
       (!Array.isArray(row.memberNames) ||
         row.memberNames.some((n) => typeof n !== 'string'))
     ) {
@@ -53,6 +54,12 @@ async function fetchCollection(name) {
     if (name === 'members' && row.introduction !== undefined &&
         typeof row.introduction !== 'string')
       throw new Error('members: invalid introduction');
+    if (name === 'members') {
+      for (const field of ['researchTopic', 'researchFocus']) {
+        if (row[field] !== undefined && typeof row[field] !== 'string')
+          throw new Error(`members: invalid ${field}`);
+      }
+    }
     if (name === 'participations') {
       if (['researchId', 'memberId', 'role'].some((field) =>
         typeof row[field] !== 'string' || !row[field].trim(),
