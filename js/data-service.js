@@ -1,5 +1,22 @@
 // Replace fetchCollection with an API adapter later; renderers only consume this model.
 const DATA_ROOT = new URL('../data/', import.meta.url);
+function validImages(images) {
+  return (
+    images === undefined ||
+    (Array.isArray(images) &&
+      images.every((image) =>
+        image &&
+        typeof image === 'object' &&
+        !Array.isArray(image) &&
+        typeof image.src === 'string' &&
+        image.src.trim() &&
+        ['alt', 'caption'].every((field) =>
+          image[field] === undefined || typeof image[field] === 'string',
+        ) &&
+        (image.fit === undefined || ['contain', 'cover'].includes(image.fit)),
+      ))
+  );
+}
 async function fetchCollection(name) {
   const response = await fetch(new URL(`${name}.json`, DATA_ROOT));
   if (!response.ok) throw new Error(`${name}: HTTP ${response.status}`);
@@ -33,6 +50,7 @@ async function fetchCollection(name) {
     if (typeof row[name === 'research' ? 'title' : 'name'] !== 'string')
       throw new Error(`${name}: missing title/name`);
     if (name === 'research') {
+      if (!validImages(row.gallery)) throw new Error('research: invalid gallery');
       for (const field of ['summary', 'introduction', 'field', 'status', 'image']) {
         if (row[field] !== undefined && typeof row[field] !== 'string')
           throw new Error(`research: invalid ${field}`);
@@ -56,6 +74,7 @@ async function fetchCollection(name) {
           (section) =>
             !section ||
             typeof section.title !== 'string' ||
+            !validImages(section.images) ||
             !textList(section.paragraphs) ||
             !textList(section.items),
         )

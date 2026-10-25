@@ -418,6 +418,156 @@ for (const topic of research) {
     0,
   );
   await page.unroute('**/data/research.json');
+  // Research-only image fixtures never modify the production JSON or image files.
+  const diagram = 'image/content-diagram.svg';
+  const photograph = 'image/content-photo.svg';
+  await page.route('**/image/content-diagram.svg', (route) => route.fulfill({
+    contentType: 'image/svg+xml',
+    body: '<svg xmlns="http://www.w3.org/2000/svg" width="2400" height="600"><rect width="2400" height="600" fill="#eff6ff"/><rect x="100" y="100" width="2200" height="400" fill="#0284c7"/></svg>',
+  }));
+  await page.route('**/image/content-photo.svg', (route) => route.fulfill({
+    contentType: 'image/svg+xml',
+    body: '<svg xmlns="http://www.w3.org/2000/svg" width="600" height="900"><rect width="600" height="900" fill="#e2e8f0"/><circle cx="300" cy="450" r="200" fill="#0284c7"/></svg>',
+  }));
+  const imageTopic = {
+    id: 'gallery-test', title: '圖片展示範例', category: 'current', example: true,
+    summary: '僅用於自動化測試的圖片展示。',
+    image: diagram, technologies: ['測試技術'],
+    sections: [
+      { title: '研究目的', paragraphs: ['驗證圖片與文字閱讀順序。'] },
+      { title: '系統架構', paragraphs: ['此為測試用圖形。'], images: [
+        { src: diagram, alt: '系統架構測試圖', caption: '架構圖說明 <b>安全文字</b>' },
+      ] },
+      { title: '實驗照片', images: [
+        { src: photograph, alt: '測試照片', caption: '測試照片說明', fit: 'cover' },
+      ] },
+      { title: '研究方法', items: ['測試條列內容'] },
+    ],
+    gallery: [
+      { src: diagram, alt: '補充架構圖', caption: '第一張補充圖' },
+      { src: photograph, caption: '第二張補充圖', fit: 'cover' },
+    ],
+  };
+  const mockResearch = (topic) => page.route('**/data/research.json', (route) =>
+    route.fulfill({ json: [...research, topic] }),
+  );
+  await mockResearch(imageTopic);
+  for (const width of [1440, 1024, 768, 390, 320]) {
+    await page.setViewportSize({ width, height: 900 });
+    await open('areas.html');
+    assert.deepEqual(
+      await page.locator('#current article').evaluateAll((cards) => cards.map((card) => card.id)),
+      [...currentResearch, imageTopic].map((topic) => `research-${topic.id}`),
+    );
+    const entry = page.locator('#research-gallery-test');
+    assert.equal(await entry.locator('img').count(), 1);
+    assert.equal(await entry.locator('.technology-tags').textContent(), '測試技術');
+    assert.equal(await page.locator('#research-thinning-weeding-robot img').count(), 0);
+    assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+    await entry.locator('a').click();
+    await page.waitForFunction(() => document.querySelector('#research-gallery-test'));
+    await page.locator('main img').evaluateAll((images) => images.forEach((image) => image.loading = 'eager'));
+    await page.waitForFunction(() => [...document.querySelectorAll('main img')].every((image) => image.complete && image.naturalWidth > 0));
+    assert.equal(await page.locator('main .research-figure').count(), 5);
+    assert.deepEqual(await page.locator('.research-detail-section h2').allTextContents(),
+      ['研究目的', '系統架構', '實驗照片', '研究方法', '研究圖片']);
+    assert.deepEqual(await page.locator('main figcaption').allTextContents(),
+      ['架構圖說明 <b>安全文字</b>', '測試照片說明', '第一張補充圖', '第二張補充圖']);
+    assert.equal(await page.locator('main figcaption b').count(), 0);
+    const architecture = page.getByAltText('系統架構測試圖', { exact: true });
+    assert.equal(await architecture.evaluate((image) => getComputedStyle(image).objectFit), 'contain');
+    const bounds = await architecture.boundingBox();
+    assert(Math.abs(bounds.width / bounds.height - 4) < 0.02, 'architecture must retain its full aspect ratio');
+    assert.equal(await page.getByAltText('測試照片', { exact: true }).evaluate((image) => getComputedStyle(image).objectFit), 'cover');
+    assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+    const trigger = page.locator('.research-image-button').nth(1);
+    await trigger.focus();
+    await page.keyboard.press('Enter');
+    const viewer = page.getByRole('dialog', { name: '研究圖片放大檢視' });
+    await viewer.waitFor({ state: 'visible' });
+    assert.equal(await viewer.locator('figcaption').textContent(), '架構圖說明 <b>安全文字</b>');
+    assert.equal(await viewer.locator('img').evaluate((image) => getComputedStyle(image).objectFit), 'contain');
+    await page.keyboard.press('Tab');
+    assert(await viewer.evaluate((dialog) => dialog.contains(document.activeElement)));
+    assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+    await page.keyboard.press('Escape');
+    await viewer.waitFor({ state: 'detached' });
+    assert(await trigger.evaluate((button) => button === document.activeElement));
+    await trigger.click();
+    await page.getByRole('button', { name: '關閉圖片', exact: true }).click();
+    await viewer.waitFor({ state: 'detached' });
+    await page.locator('.research-image-button').nth(2).click();
+    await viewer.waitFor({ state: 'visible' });
+    assert.equal(await viewer.locator('img').evaluate((image) => getComputedStyle(image).objectFit), 'contain');
+    assert((await viewer.locator('img').getAttribute('src')).endsWith(photograph));
+    await page.mouse.click(0, 0);
+    await viewer.waitFor({ state: 'detached' });
+    assert.equal(await page.locator('html.research-image-open').count(), 0);
+    if ([1440, 390].includes(width)) {
+      await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }));
+      await page.screenshot({ path: path.join(screenshotDir, `ced-gallery-${width}.png`), fullPage: true });
+    }
+  }
+  // Verify touch activation in an actual mobile browser context.
+  const mobile = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+  const mobilePage = await mobile.newPage();
+  mobilePage.on('pageerror', (error) => errors.push(error.message));
+  await mobilePage.route(/https:\/\//, (route) => route.abort());
+  await mobilePage.route('**/data/research.json', (route) => route.fulfill({ json: [...research, {
+    ...imageTopic, image: 'image/member-placeholder.svg', sections: [], gallery: [],
+  }] }));
+  await mobilePage.goto(base + detailFile(imageTopic));
+  await mobilePage.locator('.research-image-button').tap();
+  await mobilePage.getByRole('dialog').waitFor({ state: 'visible' });
+  await mobilePage.getByRole('button', { name: '關閉圖片', exact: true }).tap();
+  await mobilePage.getByRole('dialog').waitFor({ state: 'detached' });
+  await mobile.close();
+  // Failed figures remove their captions and empty image-only sections.
+  await mockResearch({ ...imageTopic, image: 'image/missing.png', gallery: [
+    { src: 'image/missing.png', caption: '失敗圖說不應留下' },
+  ], sections: [
+    { title: '圖片失敗段落', images: [{ src: 'image/missing.png' }] },
+    { title: '保留文字', paragraphs: ['圖片失敗仍保留文字。'], images: [{ src: 'image/missing.png' }] },
+    { title: '空白圖片', images: [] },
+  ] });
+  await open(detailFile(imageTopic));
+  await page.locator('main img').evaluateAll((images) => images.forEach((image) => image.loading = 'eager'));
+  await page.waitForFunction(() => !document.querySelector('main img'));
+  assert.equal(await page.locator('.research-gallery, .research-figure, figcaption').count(), 0);
+  assert.deepEqual(await page.locator('.research-detail-section h2').allTextContents(), ['保留文字']);
+  await open('areas.html');
+  await page.locator('#research-gallery-test').scrollIntoViewIfNeeded();
+  await page.waitForFunction(() => !document.querySelector('#research-gallery-test img'));
+  assert.equal(await page.locator('#research-gallery-test .research-entry-with-image').count(), 0);
+  // Unsafe URLs are ignored without requesting them; no filename becomes a caption.
+  const unsafePaths = ['https://example.invalid/x.svg', '//example.invalid/x.svg',
+    'javascript:alert(1)', 'data:image/svg+xml,test', '/image/content-diagram.svg',
+    '../outside.svg', 'image\\outside.svg'];
+  await mockResearch({ ...imageTopic, image: undefined, sections: [], gallery: [
+    ...unsafePaths.map((src) => ({ src, caption: '不可顯示' })),
+    { src: diagram },
+  ] });
+  await open(detailFile(imageTopic));
+  assert.equal(await page.locator('main .research-figure').count(), 1);
+  assert.equal(await page.locator('main figcaption').count(), 0);
+  assert(!(await page.locator('.research-image-button').getAttribute('aria-label')).includes('.svg'));
+  assert((await page.locator('main img').getAttribute('src')).endsWith(diagram));
+  // New schema fields reject malformed objects and types, while old fields remain optional.
+  for (const patch of [
+    { gallery: {} }, { gallery: [null] }, { gallery: [{ src: 42 }] },
+    { gallery: [{ src: diagram, caption: 42 }] }, { gallery: [{ src: diagram, alt: [] }] },
+    { gallery: [{ src: diagram, fit: 'stretch' }] },
+    { sections: [{ title: '錯誤圖片', images: 'not-an-array' }] },
+    { sections: [{ title: '錯誤圖片', images: [{ src: diagram, caption: false }] }] },
+  ]) {
+    await mockResearch({ ...imageTopic, ...patch });
+    await page.goto(base + detailFile(imageTopic));
+    await page.waitForFunction(() => document.querySelector('#directory-status button'));
+    assert.equal(await page.locator('[data-section="detail"] article').count(), 0);
+  }
+  await page.unroute('**/data/research.json');
+  await page.unroute('**/image/content-diagram.svg');
+  await page.unroute('**/image/content-photo.svg');
   // Missing portrait, optional image, and a dangling research reference.
   await page.route('**/data/members.json', (route) => {
     const rows = structuredClone(members);
@@ -547,7 +697,7 @@ for (const topic of research) {
   assert.deepEqual(errors, []);
   await browser.close();
   console.log(
-    'PASS: data relations, 5 viewport sizes, all bidirectional anchors, shared partials, existing pages, 3 current projects and detail navigation, historical research, all shared details and legacy redirects, query validation, JSON-only research, safe text, optional fields, relations, alumni, image fallback, missing references, empty/error/retry states.',
+    'PASS: data relations, 5 viewport sizes, all bidirectional anchors, shared partials, existing pages, 3 current projects and detail navigation, historical research, all shared details and legacy redirects, query validation, JSON-only research, safe text, optional fields, relations, research galleries/captions/section order, image validation/failures, keyboard/touch image viewer, alumni, image fallback, missing references, empty/error/retry states.',
   );
 })().catch((e) => {
   console.error(e);

@@ -149,6 +149,103 @@ function technologyTags(topic) {
   }
   return tags.children.length ? tags : null;
 }
+// Research assets must be relative paths within this deployed site.
+function researchPhoto(path, alt) {
+  if (typeof path !== 'string') return null;
+  let decoded;
+  try {
+    decoded = decodeURIComponent(path);
+  } catch {
+    return null;
+  }
+  if (
+    /^\s*([/\\]|[a-z][a-z\d+.-]*:)/i.test(decoded) ||
+    /[\\\u0000-\u001f\u007f]/.test(decoded) ||
+    /(^|\/)\.\.(\/|$)/.test(decoded)
+  )
+    return null;
+  return photo(path, alt);
+}
+function showResearchImage(source, trigger) {
+  const dialog = node('dialog', 'research-image-viewer');
+  dialog.setAttribute('aria-label', '研究圖片放大檢視');
+  const close = node('button', 'research-image-close', '關閉圖片');
+  close.type = 'button';
+  close.autofocus = true;
+  const figure = node('figure');
+  const image = node('img');
+  image.alt = source.alt;
+  image.addEventListener(
+    'error',
+    () => image.replaceWith(node('p', '', '圖片暫時無法載入。')),
+    { once: true },
+  );
+  image.src = source.src;
+  figure.append(image);
+  const caption = trigger.closest('figure').querySelector('figcaption');
+  if (caption) figure.append(node('figcaption', '', caption.textContent));
+  dialog.append(close, figure);
+  close.addEventListener('click', () => dialog.close());
+  // The close button is the viewer's only focusable control.
+  dialog.addEventListener('keydown', (event) => {
+    if (event.key === 'Tab') {
+      event.preventDefault();
+      close.focus();
+    }
+  });
+  dialog.addEventListener('click', (event) => {
+    if (event.target === dialog) dialog.close();
+  });
+  dialog.addEventListener(
+    'close',
+    () => {
+      document.documentElement.classList.remove('research-image-open');
+      dialog.remove();
+      if (trigger.isConnected) trigger.focus();
+    },
+    { once: true },
+  );
+  document.body.append(dialog);
+  document.documentElement.classList.add('research-image-open');
+  dialog.showModal();
+}
+function researchFigure(item, fallbackAlt, onError) {
+  const image = researchPhoto(item.src, item.alt?.trim() || fallbackAlt);
+  if (!image) return null;
+  const figure = node('figure', 'research-figure');
+  const button = node('button', 'research-image-button');
+  button.type = 'button';
+  button.setAttribute('aria-haspopup', 'dialog');
+  button.setAttribute('aria-label', `放大檢視：${item.caption?.trim() || image.alt}`);
+  if (item.fit === 'cover') figure.classList.add('research-figure-cover');
+  button.append(image);
+  figure.append(button);
+  if (item.caption?.trim()) figure.append(node('figcaption', '', item.caption));
+  button.addEventListener('click', () => showResearchImage(image, button));
+  image.addEventListener(
+    'error',
+    () => {
+      figure.remove();
+      onError?.();
+    },
+    { once: true },
+  );
+  return figure;
+}
+function researchGallery(images, fallbackAlt, onEmpty) {
+  const gallery = node('div', 'research-gallery');
+  const removeEmpty = () => {
+    if (!gallery.children.length) {
+      gallery.remove();
+      onEmpty?.();
+    }
+  };
+  for (const item of images || []) {
+    const figure = researchFigure(item, fallbackAlt, removeEmpty);
+    if (figure) gallery.append(figure);
+  }
+  return gallery.children.length ? gallery : null;
+}
 export function researchListCard(topic) {
   const el = node('article', 'card directory-card research-entry');
   el.id = `research-${topic.id}`;
@@ -158,7 +255,21 @@ export function researchListCard(topic) {
   if (topic.example) meta.append(node('span', 'badge', '範例資料'));
   entry.append(meta, node('h3', '', topic.title));
   if (topic.summary?.trim()) entry.append(node('p', 'muted', topic.summary));
-  entry.append(node('span', 'research-read-more', '查看研究介紹 →'));
+  const image = researchPhoto(topic.image, `${topic.title}代表圖片`);
+  if (image) {
+    entry.classList.add('research-entry-with-image');
+    image.classList.add('research-entry-image');
+    image.addEventListener('error', () =>
+      entry.classList.remove('research-entry-with-image'),
+    );
+    const content = node('div', 'research-entry-content');
+    content.append(...entry.childNodes);
+    entry.append(image, content);
+  }
+  const tags = technologyTags(topic);
+  const content = entry.querySelector('.research-entry-content') || entry;
+  if (tags) content.append(tags);
+  content.append(node('span', 'research-read-more', '查看研究介紹 →'));
   el.append(entry);
   return el;
 }
@@ -169,7 +280,7 @@ export function researchDetail(topic, model) {
   el.id = `research-${topic.id}`;
   const meta = researchMeta(topic);
   if (meta.children.length) el.append(meta);
-  const image = photo(topic.image, `${topic.title}代表圖片`);
+  const image = researchFigure({ src: topic.image }, `${topic.title}代表圖片`);
   if (image) el.append(image);
   if (topic.summary?.trim())
     el.append(
@@ -179,8 +290,11 @@ export function researchDetail(topic, model) {
   for (const section of topic.sections || []) {
     const paragraphs = (section.paragraphs || []).filter((text) => text.trim());
     const items = (section.items || []).filter((text) => text.trim());
-    if (!paragraphs.length && !items.length) continue;
     const block = node('section', 'research-detail-section');
+    const gallery = researchGallery(section.images, `${topic.title}研究圖片`, () => {
+      if (!paragraphs.length && !items.length) block.remove();
+    });
+    if (!paragraphs.length && !items.length && !gallery) continue;
     if (section.title.trim()) block.append(node('h2', '', section.title));
     for (const paragraph of paragraphs) {
       block.append(node('p', '', paragraph));
@@ -190,7 +304,21 @@ export function researchDetail(topic, model) {
       for (const item of items) list.append(node('li', '', item));
       block.append(list);
     }
+    if (gallery) block.append(gallery);
     el.append(block);
+  }
+  const galleryBlock = node(
+    'section',
+    'research-detail-section research-gallery-block',
+  );
+  const gallery = researchGallery(
+    topic.gallery,
+    `${topic.title}研究圖片`,
+    () => galleryBlock.remove(),
+  );
+  if (gallery) {
+    galleryBlock.append(node('h2', '', '研究圖片'), gallery);
+    el.append(galleryBlock);
   }
   const tags = technologyTags(topic);
   if (tags) el.append(tags);

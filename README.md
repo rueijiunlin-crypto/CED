@@ -68,6 +68,48 @@ CED/
 
 `css/directory.css` 套用成員、研究總覽與研究介紹模板；`css/style.css`、`partials/header.html`、`partials/footer.html` 保持原有內容。`js/include.js` 提供 includesReady，`js/script.js` 在頁尾載入後設定版權年份，避免非同步時序問題。
 
+## 研究圖片與段落
+
+既有 `image` 仍為選填的代表圖片路徑：研究總覽會顯示代表圖，無圖時維持原有純文字卡片。卡片仍整張可點擊，技術標籤沿用 `technologies`，分類與排序不變。
+
+新增兩個選填欄位：研究層級的 `gallery`，以及每個 `sections` 段落的 `images`。兩者皆為圖片物件陣列，每張圖片的 `src` 必填，`alt`、`caption`、`fit` 選填。`fit` 預設為 `contain`，適合系統架構圖並完整保留比例；照片可指定 `cover` 使用 4:3 縮圖。點擊任何詳細頁圖片後，放大視窗一律完整顯示原圖，不沿用縮圖裁切。
+
+以下為要合併至研究記錄的欄位範例，檔案路徑與文字須替換為已確認的實際內容；不應直接當作正式研究成果：
+
+```json
+{
+  "gallery": [
+    {
+      "src": "image/research/example-photo.jpg",
+      "alt": "研究操作情境示意",
+      "caption": "請替換為已確認的照片說明",
+      "fit": "cover"
+    }
+  ],
+  "sections": [
+    {
+      "title": "系統架構",
+      "paragraphs": ["請填入已確認的架構介紹。"],
+      "items": ["請填入已確認的系統組成。"],
+      "images": [
+        {
+          "src": "image/research/example-diagram.png",
+          "alt": "系統各模組的連接關係",
+          "caption": "請替換為已確認的架構圖說明",
+          "fit": "contain"
+        }
+      ]
+    }
+  ]
+}
+```
+
+`sections` 依陣列順序呈現，每段依序顯示標題、`paragraphs`、`items`、`images`；若需在兩段文字之間插圖，可拆成依序排列的段落。研究層級 `gallery` 放在介紹段落之後、技術與相關人員之前，各圖片依陣列順序顯示。可建立純圖片段落；空段落、不安全路徑或全部圖片失敗的純圖片區塊會隱藏，有文字的段落則保留。
+
+圖片路徑僅接受相對網站根目錄的站內路徑，不接受外部網址、`data:`、`javascript:`、絕對路徑、反斜線或父目錄跳轉。文字一律使用安全 DOM API，缺少圖說不會以檔名代替。圖片陣列與欄位型別錯誤會沿用資料載入錯誤與重試提示。
+
+放大視窗支援滑鼠／觸控、Enter／Space 開啟、Escape／關閉按鈕／點擊背景關閉，Tab 焦點保留於視窗內，關閉後回到原圖片按鈕。需要支援原生 HTML `dialog` 的現代瀏覽器，不需額外套件。
+
 ## 原始內容保留
 
 成員、團隊及歷屆研究仍維持範例。現行研究已改為「疏苗除草機器人」「垃圾收集海漂船」「割草機器人」，並統一使用共用研究模板。研究介紹從同一份 JSON 產生，名稱與三段介紹可直接在資料檔更新。
@@ -97,3 +139,5 @@ CHROMIUM_PATH=/usr/bin/chromium node tests/directory.cjs
 測試涵蓋 JSON 關聯、桌機 / 平板 / 手機、兩頁雙向錨點、Alumni 展開、共用導覽與頁尾、舊頁載入，以及 JSON / 圖片失敗情境。Playwright 僅為開發驗證工具，不是網站執行相依。
 
 測試亦涵蓋全部研究的共用模板、九個舊網址轉址、無 `detailUrl` 的 JSON 測試研究、選填欄位、參數驗證、安全文字與雙向人員關聯。截圖預設存於作業系統暫存目錄，可用 `CED_SCREENSHOT_DIR` 指定已存在的輸出目錄。可設定 `CED_TEST_BASE=http://127.0.0.1:8000/CED/` 驗證子路徑部署。
+
+圖片擴充測試使用 Playwright 暫時攔截的 JSON 與 SVG 圖形，涵蓋多圖、圖說、段落順序、架構圖完整比例、照片縮圖與原圖、失敗清理、欄位型別、安全網址、鍵盤焦點與手機觸控；正式 `data/research.json` 不加入測試內容。
