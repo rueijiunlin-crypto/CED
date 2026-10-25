@@ -165,24 +165,26 @@ function researchParticipants(topic, model) {
       if (status === 'alumni' && member.graduationYear)
         labels.push(`${member.graduationYear} 年畢業`);
       content.append(node('p', 'member-meta', labels.join(' · ')));
-      if (record?.role) content.append(node('p', 'muted', `參與角色：${record.role}`));
-      if (record?.researchYear)
-        content.append(node('p', 'muted', `研究年份：${record.researchYear}`));
-      if (record?.focus?.trim())
+      if (status === 'current' && record?.focus?.trim())
         content.append(node('p', '', `研究方向：${record.focus}`));
-      if (status === 'current' && member.introduction?.trim())
-        content.append(node('p', 'muted', member.introduction));
-      if (record?.contribution?.trim())
+      if (status === 'alumni' && record?.contribution?.trim())
         content.append(node('p', '', `研究貢獻：${record.contribution}`));
-      if (record?.thesis) {
+      if (status === 'alumni' && record?.thesis) {
         const thesis = node('p', 'research-thesis');
         const title = `《${record.thesis.title}》`;
         const url = publicationUrl(record.thesis.url);
         thesis.append(member.degree === 'master' ? '碩士論文：' : '學位論文：');
         thesis.append(url ? link(title, url) : node('span', '', title));
         content.append(thesis);
-        if (record.thesis.advisor?.trim())
-          content.append(node('p', 'muted', `指導教授：${record.thesis.advisor}`));
+        const keywords = (record.thesis.keywords || []).filter((text) => text.trim());
+        if (keywords.length) {
+          const tags = node('ul', 'technology-tags thesis-keywords');
+          for (const keyword of keywords) tags.append(node('li', '', keyword));
+          content.append(node('p', 'field-label', '論文關鍵字'), tags);
+        }
+        const coAdvisors = (record.thesis.coAdvisors || []).filter((text) => text.trim());
+        if (coAdvisors.length)
+          content.append(node('p', 'muted', `共同指導教授：${coAdvisors.join('、')}`));
       }
       if (status === 'current' || member.photo) {
         const image = photo(member.photo, `${member.name}的照片`, true);

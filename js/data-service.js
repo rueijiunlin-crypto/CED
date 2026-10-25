@@ -68,6 +68,12 @@ async function fetchCollection(name) {
         !row.thesis.title.trim() ||
         ['advisor', 'url'].some((field) =>
           row.thesis[field] !== undefined && typeof row.thesis[field] !== 'string',
+        ) ||
+        ['keywords', 'coAdvisors'].some((field) =>
+          row.thesis[field] !== undefined && (
+            !Array.isArray(row.thesis[field]) ||
+            row.thesis[field].some((value) => typeof value !== 'string')
+          ),
         )
       )) throw new Error('participations: invalid thesis');
     }

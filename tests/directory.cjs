@@ -606,13 +606,22 @@ for (const topic of research) {
     const current = page.locator('[data-people="current"]');
     const alumni = page.locator('[data-people="alumni"]');
     assert.equal(await current.locator('a[data-member-link]').textContent(), currentMember.name);
-    assert((await current.textContent()).includes(currentMember.introduction));
+    assert(!(await current.textContent()).includes(currentMember.introduction));
+    assert.deepEqual(await current.locator('p').allTextContents(), [
+      '碩士研究生',
+      '研究方向：視覺語言模型、無人機視覺感知、空地協作自主系統',
+    ]);
     assert((await current.textContent()).includes('碩士研究生'));
     assert.equal(await alumni.locator('a[data-member-link]').textContent(), alumnus.name);
-    for (const value of ['2026 年畢業', '碩士畢業生', thesis.title, thesis.advisor,
+    for (const value of ['2026 年畢業', '碩士畢業生', thesis.title,
       '空拍輔助建圖、語義感知與自主割草機器人導航整合。'])
       assert((await alumni.textContent()).includes(value));
     assert.equal(await alumni.locator('.research-thesis a').count(), 0);
+    assert.deepEqual(await alumni.locator('.thesis-keywords li').allTextContents(),
+      ['割草機器人', '空拍機輔助建圖', '語義分割']);
+    assert(!(await page.locator('main').textContent()).includes('參與角色'));
+    assert.equal(await page.getByText(/^指導教授：/).count(), 0);
+    assert.equal(await page.getByText(/^共同指導教授：/).count(), 0);
     assert.equal(await page.locator('.research-gallery, .research-figure').count(), 0);
     assert(!(await page.locator('main').textContent()).includes('研究關注議題'));
     assert(!(await page.locator('main').textContent()).includes('相關參考文獻'));
@@ -636,6 +645,7 @@ for (const topic of research) {
       assert(await card.isVisible());
       assert.equal(await card.locator('.badge').count(), 0);
       assert((await card.textContent()).includes(member.name));
+      if (member.introduction) assert((await card.textContent()).includes(member.introduction));
       await card.locator('.research-links a').click();
       await page.waitForURL(new URL(detailFile(mowing), base).href);
       await open('members.html');
@@ -653,7 +663,10 @@ for (const topic of research) {
   });
   await open(detailFile(mowing));
   assert((await page.locator('[data-people="current"]').textContent()).includes('主資料姓名測試'));
-  assert((await page.locator('[data-people="current"]').textContent()).includes('主資料介紹測試'));
+  assert(!(await page.locator('[data-people="current"]').textContent()).includes('主資料介紹測試'));
+  await open('members.html');
+  assert((await page.locator(`#member-${currentMember.id}`).textContent()).includes('主資料介紹測試'));
+  await open(detailFile(mowing));
   assert((await page.locator('[data-people="alumni"]').textContent()).includes('2027 年畢業'));
   await page.unroute('**/data/members.json');
   await page.route('**/data/members.json', (route) => {
@@ -679,12 +692,33 @@ for (const topic of research) {
   ] }));
   await open(detailFile(otherProject));
   const peopleText = await page.locator('[data-people="current"]').textContent();
-  for (const value of [currentMember.name, '共同研究', '2026', '關聯方向測試'])
+  for (const value of [currentMember.name, '關聯方向測試'])
     assert(peopleText.includes(value));
+  assert(!peopleText.includes('共同研究'));
+  assert(!peopleText.includes('研究年份'));
+  assert(!peopleText.includes(currentMember.introduction));
   await open('members.html');
   assert.equal(await page.locator(`#member-${currentMember.id} .research-links a`).count(), 2);
   await page.unroute('**/data/research.json');
   await page.unroute('**/data/participations.json');
+  // Explicit co-advisors are independent of the preserved general advisor field.
+  for (const coAdvisors of [undefined, [], [' '], ['共同指導測試教授', '第二位共同指導教授']]) {
+    await page.route('**/data/participations.json', (route) => {
+      const rows = structuredClone(participations);
+      const record = rows.find((row) => row.memberId === alumnus.id);
+      record.thesis.coAdvisors = coAdvisors;
+      record.thesis.url = 'https://example.org/confirmed-thesis.pdf';
+      return route.fulfill({ json: rows });
+    });
+    await open(detailFile(mowing));
+    assert.equal(await page.getByText(/^指導教授：/).count(), 0);
+    const explicit = coAdvisors?.filter((name) => name.trim()) || [];
+    assert.equal(await page.getByText(/^共同指導教授：/).count(), explicit.length ? 1 : 0);
+    if (explicit.length)
+      assert.equal(await page.getByText(/^共同指導教授：/).textContent(), `共同指導教授：${explicit.join('、')}`);
+    assert.equal(await page.locator('.research-thesis a').getAttribute('href'), 'https://example.org/confirmed-thesis.pdf');
+    await page.unroute('**/data/participations.json');
+  }
   // Publication URLs are optional and cannot execute scripts.
   await page.route('**/data/participations.json', (route) => {
     const rows = structuredClone(participations);
@@ -710,6 +744,10 @@ for (const topic of research) {
     [{ ...participations[0], researchId: 'unknown-research' }],
     [{ ...participations[0], researchYear: '2026' }],
     [{ ...participations[0], thesis: { title: 42 } }],
+    [{ ...participations[0], thesis: { title: '測試', keywords: 'not-an-array' } }],
+    [{ ...participations[0], thesis: { title: '測試', keywords: [42] } }],
+    [{ ...participations[0], thesis: { title: '測試', coAdvisors: 'not-an-array' } }],
+    [{ ...participations[0], thesis: { title: '測試', coAdvisors: [null] } }],
   ]) {
     await page.route('**/data/participations.json', (route) => route.fulfill({ json: rows }));
     await page.goto(base + detailFile(mowing));
@@ -847,7 +885,7 @@ for (const topic of research) {
   assert.deepEqual(errors, []);
   await browser.close();
   console.log(
-    'PASS: data relations, 5 viewport sizes, all bidirectional anchors, shared partials, existing pages, 3 current projects and detail navigation, historical research, all shared details and legacy redirects, query validation, JSON-only research, safe text, optional fields, relations, research galleries/captions/section order, image validation/failures, keyboard/touch image viewer, confirmed members and cross-cohort participations/thesis, member master data joins, alumni, image fallback, missing references, empty/error/retry states.',
+    'PASS: data relations, 5 viewport sizes, all bidirectional anchors, shared partials, existing pages, 3 current projects and detail navigation, historical research, all shared details and legacy redirects, query validation, JSON-only research, safe text, optional fields, relations, research galleries/captions/section order, image validation/failures, keyboard/touch image viewer, confirmed members and cross-cohort participations/thesis, concise profiles and thesis keywords/co-advisors, member master data joins, alumni, image fallback, missing references, empty/error/retry states.',
   );
 })().catch((e) => {
   console.error(e);
