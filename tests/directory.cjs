@@ -596,17 +596,24 @@ for (const topic of research) {
     await page.setViewportSize({ width, height: 900 });
     await open('members.html');
     assert.deepEqual(await page.locator('main > section:visible > h2').allTextContents(),
-      ['在籍研究成員', '歷屆畢業成員']);
+      ['研究成員', '歷屆畢業成員']);
     const card = page.locator('#member-lin-ruei-jiun');
     assert.equal(await card.locator('h3').textContent(), '林睿鈞');
     assert.equal(await card.locator('.member-meta').textContent(), '碩士研究生');
     assert.deepEqual(await card.locator('dd').allTextContents(), [
-      '視覺語言模型與空地協作自主系統',
       '視覺語言模型、無人機視覺感知、空地協作',
     ]);
     assert(!(await card.textContent()).includes(profile.introduction));
     assert.equal(await page.getByText(/^參與角色：|^指導教授：/).count(), 0);
     assert.equal(await page.getByText('共同指導教授', { exact: true }).count(), 0);
+    assert.equal(await page.getByText('研究主題', { exact: true }).count(), 0);
+    assert(!(await page.locator('main').textContent()).includes(profile.researchTopic));
+    assert.equal(await page.locator('.section-nav a[href="#masters"]').textContent(), '研究成員');
+    for (const member of members.filter((member) => member.id !== profile.id)) {
+      const item = page.locator(`#member-${member.id}`);
+      assert.equal(await item.locator('.member-field').count(), 0);
+      assert.equal(await item.locator('.research-links a').count(), 1);
+    }
     assert((await card.locator('img').getAttribute('src')).endsWith('member-placeholder.svg'));
     const imageBox = await card.locator('img').boundingBox();
     const contentBox = await card.locator('.member-card-content').boundingBox();
@@ -622,7 +629,7 @@ for (const topic of research) {
     assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
     const alumniCard = page.locator('#member-yan-jia-yuan');
     assert((await alumniCard.textContent()).includes('碩士畢業生'));
-    assert((await alumniCard.textContent()).includes('自主割草機器人導航框架'));
+    assert(!(await alumniCard.textContent()).includes(graduate.researchTopic));
     assert((await alumniCard.locator('xpath=ancestor::details').locator('summary').textContent()).includes('2026 年畢業'));
     assert(!(await alumniCard.textContent()).includes(participations.find((row) => row.memberId === graduate.id).thesis.title));
     assert.equal(await page.locator('#groups').isVisible(), false);
@@ -633,7 +640,7 @@ for (const topic of research) {
       assert(await item.isVisible());
       assert.equal(await item.locator('.research-links a').count(), 1);
       if (!member.degree) {
-        assert.equal(await item.locator('.member-meta').textContent(), '在籍研究成員');
+        assert.equal(await item.locator('.member-meta').count(), 0);
         assert.equal(await item.locator('.member-fields').count(), 0);
       }
     }
@@ -695,6 +702,18 @@ for (const topic of research) {
   assert(!(await page.locator('main').textContent()).includes('undefined'));
   await page.unroute('**/data/members.json');
   await page.unroute('**/data/groups.json');
+  // Topic data remains valid but is never rendered for any member or cohort.
+  await page.route('**/data/members.json', (route) => route.fulfill({ json: [
+    ...sourceMembers.map((member) => ({ ...member, researchTopic: '不公開的研究主題測試' })),
+    { id: 'topic-rule-test', name: '共用規則測試', status: 'current', researchTopic: '不公開的研究主題測試', researchFocus: '確認研究方向測試' },
+  ] }));
+  await open('members.html');
+  assert(!(await page.locator('main').textContent()).includes('不公開的研究主題測試'));
+  assert.equal(await page.getByText('研究主題', { exact: true }).count(), 0);
+  const optionalIdentity = page.locator('#member-topic-rule-test');
+  assert.equal(await optionalIdentity.locator('.member-meta').count(), 0);
+  assert.deepEqual(await optionalIdentity.locator('dd').allTextContents(), ['確認研究方向測試']);
+  await page.unroute('**/data/members.json');
   // Co-advisors are reused from participation records, never guessed from advisor.
   await page.route('**/data/participations.json', (route) => {
     const rows = structuredClone(participations);

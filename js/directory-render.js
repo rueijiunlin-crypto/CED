@@ -95,10 +95,9 @@ export function memberCard(member, model) {
   const image = member.status === 'current' || member.photo
     ? photo(member.photo, `${member.name}的照片`, true) : null;
   const { el, content } = peopleCard(`member-${member.id}`, member.name, member.example, image);
-  const label = [memberIdentity(member), member.grade].filter(Boolean).join(' · ');
-  content.append(node('p', 'member-meta', label));
+  if (['master', 'phd'].includes(member.degree))
+    content.append(node('p', 'member-meta', memberIdentity(member)));
   const fields = node('dl', 'member-fields');
-  appendField(fields, '研究主題', member.researchTopic);
   appendField(fields, '研究方向', member.researchFocus);
   const coAdvisors = [...new Set(model.participations
     .filter((row) => row.memberId === member.id)
