@@ -101,6 +101,54 @@ for (const topic of research) {
         () => document.querySelector('#directory-status')?.textContent === '',
       );
   }
+  // Home uses only the five confirmed local images and existing detail routes.
+  const homeProjects = [
+    ['mowing-robot', '割草機器人', '割草機.png'],
+    ['thinning-weeding-robot', '疏苗除草機器人', '書苗除草機器人.jpg'],
+    ['marine-trash-collection-vessel', '垃圾收集海漂船', '海漂船.jpg'],
+  ];
+  for (const filename of ['同步工程設計實驗室形象首頁.png', '教授照片.jpg', ...homeProjects.map((row) => row[2])])
+    assert(fs.existsSync(path.join(root, 'image/index', filename)));
+  for (const width of [1440, 1024, 768, 390, 320]) {
+    await page.setViewportSize({ width, height: 1000 });
+    await open('index.html');
+    await page.locator('main img').evaluateAll((images) => images.forEach((img) => img.loading = 'eager'));
+    await page.waitForFunction(() => [...document.querySelectorAll('main img')].every((img) => img.complete && img.naturalWidth > 0));
+    assert.equal(await page.locator('main img').count(), 5);
+    assert.equal(await page.locator('main img[src^="http"], main table, main a[href="pubs.html"]').count(), 0);
+    assert.deepEqual(await page.locator('main section > .section-title h2').allTextContents(), ['指導教授', '研究領域', '最新消息']);
+    const text = await page.locator('main').textContent();
+    for (const removed of ['範例', '示範', '歷年研究模板', '期刊論文', '2025/09/01', '研究生徵才'])
+      assert(!text.includes(removed));
+    assert.equal(await page.locator('.home-news').textContent().then((text) => text.trim()), '目前尚無最新消息。');
+    assert.equal(await page.locator('.home-professor h3').textContent(), '余志成教授');
+    assert((await page.locator('.home-professor').textContent()).includes('國立高雄科技大學 機電工程系'));
+    assert.equal(await page.locator('.home-professor a').getAttribute('href'), 'pi.html');
+    for (const selector of ['.home-hero img', '.home-professor > img']) {
+      assert(await page.locator(selector).evaluate((img) =>
+        Math.abs(img.width / img.height - img.naturalWidth / img.naturalHeight) < 0.01));
+    }
+    const hero = await page.locator('.home-hero').boundingBox();
+    const professor = await page.locator('main > section').first().boundingBox();
+    assert(Math.abs(professor.y - hero.y - hero.height - 48) < 1);
+    const portrait = await page.locator('.home-professor > img').boundingBox();
+    const biography = await page.locator('.home-professor > div').boundingBox();
+    if (width > 600) assert(biography.x > portrait.x + portrait.width);
+    else assert(biography.y >= portrait.y + portrait.height);
+    assert.equal(await page.locator('.home-research-grid').evaluate((el) => getComputedStyle(el).gridTemplateColumns.split(' ').length), width > 900 ? 3 : width > 600 ? 2 : 1);
+    assert.deepEqual(await page.locator('.home-research-card h3').allTextContents(), homeProjects.map((row) => row[1]));
+    assert(await page.locator('.home-research-card img').evaluateAll((images) => images.every((img) => getComputedStyle(img).objectFit === 'contain')));
+    assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+    if ([1440, 390].includes(width)) await page.screenshot({ path: path.join(screenshotDir, `ced-home-${width === 1440 ? 'desktop' : 'mobile'}.png`), fullPage: true });
+    for (const [index, [id, title]] of homeProjects.entries()) {
+      await page.locator('.home-research-card').nth(index).click();
+      await page.waitForURL(new URL(`areas/research.html?id=${id}`, base).href);
+      await page.waitForFunction((title) => document.querySelector('main h1')?.textContent === title, title);
+      await open('index.html');
+    }
+    await page.locator('.home-professor a').click();
+    await page.waitForURL('**/pi.html');
+  }
   for (const width of [1440, 1024, 768, 390, 320]) {
     await page.setViewportSize({ width, height: 900 });
     for (const file of ['members.html', 'areas.html', 'contact.html', 'location.html']) {

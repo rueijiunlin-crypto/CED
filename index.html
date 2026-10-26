@@ -24,153 +24,65 @@
       rel="stylesheet"
       href="css/style.css"
     />
+    <link rel="stylesheet" href="css/home.css" />
   </head>
   <body>
     <div data-include="partials/header.html"></div>
 
-    <main class="wrap hero">
-      <div
-        class="card"
-        style="margin-bottom: 18px"
-      >
-        <div class="section-title">
-          <h2>最新消息</h2>
-          <a
-            class="more"
-            href="news.html"
-            >更多 →</a
-          >
-        </div>
-        <ul class="news">
-          <li>
-            <time>2025/09/01</time>
-            <span>本實驗室 CED 研究生徵才（112-1）。</span>
-          </li>
-          <li><time>2025/07/20</time> <span>恭賀論文獲期刊錄用。</span></li>
-          <li><time>2025/06/27</time> <span>參與產學合作計畫啟動。</span></li>
-        </ul>
+    <main class="wrap home-page" aria-label="同步工程設計實驗室首頁">
+      <div class="home-hero">
+        <img src="image/index/同步工程設計實驗室形象首頁.png"
+          width="1672" height="941" fetchpriority="high"
+          alt="同步工程設計實驗室 CED Lab：余志成教授與割草機器人、疏苗除草機器人及垃圾收集海漂船" />
       </div>
 
-      <div class="banner">
-        <div class="banner-inner">
-          <img
-            src="https://images.unsplash.com/photo-1551836022-d5d88e9218df?q=80&w=1600&auto=format&fit=crop"
-            alt="CED banner"
-          />
-        </div>
-      </div>
-
-      <!-- ===== 指導教授 ===== -->
-      <section
-        class="wrap"
-        style="padding-top: 24px"
-      >
+      <section aria-labelledby="home-professor-title">
         <div class="section-title">
-          <h2>指導教授</h2>
-          <a
-            class="more"
-            href="pi.html"
-            >更多 →</a
-          >
+          <h2 id="home-professor-title">指導教授</h2>
         </div>
-        <div class="grid cols-2">
-          <div class="card">
-            <h3>余志成 教授</h3>
-            <p class="muted">國立高雄科技大學 機電工程系 · CED Lab</p>
-            <p>
-              研究專長：同步工程方法學、導光板設計與製造、鐵電薄膜微感測器、穩健最佳化、智慧服務型機器人。
-            </p>
-            <p>
-              Email：<a href="mailto:jcyu@nkust.edu.tw">jcyu@nkust.edu.tw</a>
-            </p>
-            <p>
-              <a
-                class="btn ghost"
-                href="pi.html"
-                >查看完整介紹</a
-              >
-            </p>
-          </div>
-          <div class="card">
-            <img
-              src="https://dummyimage.com/800x600/e2e8f0/64748b&text=PI+Photo"
-              alt="PI photo"
-              style="width: 100%; border-radius: 12px"
-            />
+        <div class="card home-professor">
+          <img src="image/index/教授照片.jpg" width="266" height="400"
+            loading="lazy" alt="余志成教授" />
+          <div>
+            <h3>余志成教授</h3>
+            <p class="muted">國立高雄科技大學 機電工程系</p>
+            <p>研究專長涵蓋同步工程設計、最佳化設計、微感測器與智慧服務型機器人等領域，致力於整合工程設計方法與智慧化技術。</p>
+            <a class="btn ghost" href="pi.html">查看完整介紹</a>
           </div>
         </div>
       </section>
 
-      <!-- ===== 研究領域 ===== -->
-      <section
-        class="wrap"
-        style="padding-top: 24px"
-      >
+      <section aria-labelledby="home-research-title">
         <div class="section-title">
-          <h2>研究領域</h2>
-          <a
-            class="more"
-            href="areas.html"
-            >全部 →</a
-          >
+          <h2 id="home-research-title">研究領域</h2>
+          <a class="more" href="areas.html">查看全部</a>
         </div>
-
-        <div class="grid cols-2">
-          <a
-            class="card"
-            href="areas.html#historical"
-          >
-            <h3>歷年研究模板</h3>
-            <p class="muted">示範歷年研究的分類與介紹，尚未套用正式內容。</p>
+        <div class="home-research-grid">
+          <a class="card home-research-card" href="areas/research.html?id=mowing-robot">
+            <img src="image/index/割草機.png" width="764" height="1017"
+              loading="lazy" alt="割草機器人設備" />
+            <h3>割草機器人</h3>
           </a>
-
-          <a
-            class="card"
-            href="areas.html#current"
-          >
-            <h3>進行中的研究</h3>
-            <p class="muted">了解實驗室目前進行中的研究與應用方向。</p>
+          <a class="card home-research-card" href="areas/research.html?id=thinning-weeding-robot">
+            <img src="image/index/書苗除草機器人.jpg" width="518" height="540"
+              loading="lazy" alt="疏苗除草機器人設備" />
+            <h3>疏苗除草機器人</h3>
+          </a>
+          <a class="card home-research-card" href="areas/research.html?id=marine-trash-collection-vessel">
+            <img src="image/index/海漂船.jpg" width="910" height="693"
+              loading="lazy" alt="垃圾收集海漂船設備" />
+            <h3>垃圾收集海漂船</h3>
           </a>
         </div>
       </section>
 
-      <section
-        class="wrap"
-        style="padding-top: 0"
-      >
+      <section aria-labelledby="home-news-title">
         <div class="section-title">
-          <h2>期刊論文</h2>
-          <a
-            class="more"
-            href="pubs.html"
-            >更多 →</a
-          >
+          <h2 id="home-news-title">最新消息</h2>
+          <a class="more" href="news.html">查看更多</a>
         </div>
-        <div class="card">
-          <table>
-            <thead>
-              <tr>
-                <th>年份</th>
-                <th>作者</th>
-                <th>題目</th>
-                <th>期刊/會議</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>2024</td>
-                <td>Chih‑Cheng Yu et al.</td>
-                <td>Robust Optimization for LGP Micro‑structures</td>
-                <td>Optics Express</td>
-              </tr>
-              <tr>
-                <td>2023</td>
-                <td>Chih‑Cheng Yu et al.</td>
-                <td>Concurrent Engineering in Conceptual Design</td>
-                <td>Advanced Engineering Informatics</td>
-              </tr>
-            </tbody>
-          </table>
+        <div class="card home-news">
+          <p class="muted">目前尚無最新消息。</p>
         </div>
       </section>
     </main>
