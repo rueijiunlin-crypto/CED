@@ -18,7 +18,8 @@
     "status": "alumni",
     "graduationYear": 2026,
     "example": false,
-    "researchTopic": "自主割草機器人導航框架"
+    "researchTopic": "自主割草機器人導航框架",
+    "researchFocus": "自主移動機器人、空拍輔助建圖、語義分割、自主導航、覆蓋路徑規劃"
   },
   {
     "id": "chen-hong-jun",

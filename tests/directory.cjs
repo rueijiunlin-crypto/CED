@@ -627,7 +627,7 @@ for (const topic of research) {
       ['歷屆畢業成員']);
     const card = page.locator('#member-lin-ruei-jiun');
     assert.equal(await card.locator('h3').textContent(), '林睿鈞');
-    assert.equal(await card.locator('.member-meta').textContent(), '碩士研究生');
+    assert.equal(await card.locator('.member-meta').textContent(), '研究生 · 115 學年度入學');
     assert.deepEqual(await card.locator('dd').allTextContents(), [
       '視覺語言模型、無人機視覺感知、空地協作',
     ]);
@@ -639,7 +639,7 @@ for (const topic of research) {
     assert.equal(await page.locator('.section-nav a[href="#masters"]').textContent(), '研究成員');
     for (const member of members.filter((member) => member.id !== profile.id)) {
       const item = page.locator(`#member-${member.id}`);
-      assert.equal(await item.locator('.member-field').count(), 0);
+      assert.equal(await item.locator('.member-field').count(), member.id === graduate.id ? 1 : 0);
       assert.equal(await item.locator('.research-links a').count(), 1);
     }
     assert((await card.locator('img').getAttribute('src')).endsWith('member-placeholder.svg'));
@@ -656,7 +656,9 @@ for (const topic of research) {
     }
     assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
     const alumniCard = page.locator('#member-yan-jia-yuan');
-    assert((await alumniCard.textContent()).includes('碩士畢業生'));
+    assert.equal(await alumniCard.locator('.member-meta').textContent(), '碩士畢業生');
+    assert.deepEqual(await alumniCard.locator('.technology-tags li').allTextContents(),
+      ['自主移動機器人', '空拍輔助建圖', '語義分割', '自主導航', '覆蓋路徑規劃']);
     assert(!(await alumniCard.textContent()).includes(graduate.researchTopic));
     assert((await alumniCard.locator('xpath=ancestor::details').locator('summary').textContent()).includes('2026 年畢業'));
     assert(!(await alumniCard.textContent()).includes(participations.find((row) => row.memberId === graduate.id).thesis.title));
@@ -666,9 +668,10 @@ for (const topic of research) {
     for (const member of members.filter((member) => member.status === 'current')) {
       const item = page.locator(`#member-${member.id}`);
       assert(await item.isVisible());
+      assert.equal(await item.locator('.member-meta').textContent(), `研究生 · ${member.admissionYear} 學年度入學`);
       assert.equal(await item.locator('.research-links a').count(), 1);
       if (!member.degree) {
-        assert.equal(await item.locator('.member-meta').count(), 0);
+        assert.equal(await item.locator('.member-meta').textContent(), `研究生 · ${member.admissionYear} 學年度入學`);
         assert.equal(await item.locator('.member-fields').count(), 0);
       }
     }
@@ -685,6 +688,7 @@ for (const topic of research) {
     { id: 'optional-phd', name: '選填資料測試', degree: 'phd', status: 'current' },
     { id: 'unknown-year-a', name: '年度測試甲', degree: 'master', status: 'alumni' },
     { id: 'unknown-year-b', name: '年度測試乙', degree: 'master', status: 'alumni' },
+    { id: 'phd-graduate', name: '博士畢業測試', degree: 'phd', status: 'alumni', graduationYear: 2025, identity: '舊身分' },
   ] }));
   await page.route('**/data/groups.json', (route) => route.fulfill({ json: [
     ...groups, { id: 'optional-group', name: '精簡團隊測試', status: 'current', image: 'image/missing.png' },
@@ -692,8 +696,10 @@ for (const topic of research) {
   await open('members.html');
   const sparse = page.locator('#member-optional-phd');
   assert(await sparse.isVisible());
-  assert.equal(await sparse.locator('.member-meta').textContent(), '博士研究生');
+  assert.equal(await sparse.locator('.member-meta').textContent(), '研究生');
   assert.equal(await sparse.locator('.member-fields, .research-links').count(), 0);
+  assert.equal(await page.locator('#member-phd-graduate .member-meta').textContent(), '博士畢業生');
+  assert.equal(await page.locator('#member-unknown-year-a .member-meta').textContent(), '碩士畢業生');
   const lastYear = page.locator('.alumni-year').last();
   assert.equal(await lastYear.locator('summary').textContent(), '年度待補 · 2 位');
   assert.equal(await lastYear.locator('article').count(), 2);
@@ -739,7 +745,7 @@ for (const topic of research) {
   assert(!(await page.locator('main').textContent()).includes('不公開的研究主題測試'));
   assert.equal(await page.getByText('研究主題', { exact: true }).count(), 0);
   const optionalIdentity = page.locator('#member-topic-rule-test');
-  assert.equal(await optionalIdentity.locator('.member-meta').count(), 0);
+  assert.equal(await optionalIdentity.locator('.member-meta').textContent(), '研究生');
   assert.deepEqual(await optionalIdentity.locator('dd').allTextContents(), ['確認研究方向測試']);
   await page.unroute('**/data/members.json');
   // Co-advisors are reused from participation records, never guessed from advisor.

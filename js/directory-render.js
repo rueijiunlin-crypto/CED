@@ -95,10 +95,28 @@ export function memberCard(member, model) {
   const image = member.status === 'current' || member.photo
     ? photo(member.photo, `${member.name}的照片`, true) : null;
   const { el, content } = peopleCard(`member-${member.id}`, member.name, member.example, image);
-  if (member.identity?.trim() || ['master', 'phd'].includes(member.degree))
-    content.append(node('p', 'member-meta', memberIdentity(member)));
+  // Directory labels are independent of research-detail participant labels.
+  let identity = memberIdentity(member);
+  if (member.status === 'current') {
+    identity = '研究生';
+    if (Number.isInteger(member.admissionYear) && member.admissionYear > 0)
+      identity += ` · ${member.admissionYear} 學年度入學`;
+  } else if (member.status === 'alumni' && ['master', 'phd'].includes(member.degree)) {
+    identity = `${member.degree === 'phd' ? '博士' : '碩士'}畢業生`;
+  }
+  if (member.status === 'current' || member.identity?.trim() || ['master', 'phd'].includes(member.degree))
+    content.append(node('p', 'member-meta', identity));
   const fields = node('dl', 'member-fields');
-  appendField(fields, '研究方向', member.researchFocus);
+  if (member.status === 'alumni' && member.researchFocus?.trim()) {
+    const row = node('div', 'member-field');
+    const value = node('dd');
+    const tags = node('ul', 'technology-tags');
+    for (const keyword of member.researchFocus.split('、').map((text) => text.trim()).filter(Boolean))
+      tags.append(node('li', '', keyword));
+    value.append(tags);
+    row.append(node('dt', '', '研究方向'), value);
+    fields.append(row);
+  } else appendField(fields, '研究方向', member.researchFocus);
   const coAdvisors = [...new Set(model.participations
     .filter((row) => row.memberId === member.id)
     .flatMap((row) => row.thesis?.coAdvisors || [])
