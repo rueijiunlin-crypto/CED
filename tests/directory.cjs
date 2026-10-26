@@ -147,6 +147,15 @@ for (const topic of research) {
         assert(spacing.card >= 23 && spacing.card < 100, `${file}: first card gap`);
         if (file === 'members.html') assert(Math.abs(spacing.card - 24) < 1);
       }
+      if (['contact.html', 'location.html'].includes(file)) {
+        const lab = page.locator('main p').filter({ hasText: '實驗室位置：工學院 F360' });
+        const office = page.locator('main p').filter({ hasText: '余志成教授研究室位置：工學院 F308' });
+        assert.equal(await lab.count(), 1);
+        assert.equal(await office.count(), 1);
+        const labBox = await lab.boundingBox();
+        const officeBox = await office.boundingBox();
+        assert(officeBox.y >= labBox.y + labBox.height, 'locations must occupy separate lines');
+      }
       if (file === 'contact.html') {
         assert.deepEqual(await page.locator('main h1, main h2').allTextContents(),
           ['聯絡我們', '聯絡資訊', '實驗室位置']);
