@@ -361,3 +361,23 @@ body > header,
 body > footer {
   flex: 0 0 auto;
 }
+
+.contact-page .campus-map {
+  margin: 24px 0;
+}
+.contact-page .campus-map img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 10px;
+}
+.contact-page .campus-map figcaption {
+  margin-top: 12px;
+  color: var(--muted);
+  font-size: 14px;
+}
+.contact-page .campus-map a:focus-visible {
+  display: block;
+  outline: 3px solid var(--brand-600);
+  outline-offset: 4px;
+}

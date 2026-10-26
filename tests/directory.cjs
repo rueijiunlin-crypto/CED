@@ -162,6 +162,22 @@ for (const topic of research) {
         const text = await page.locator('main').textContent();
         for (const value of ['國立高雄科技大學', '同步工程設計實驗室', '第一校區', '工學院', 'F360', 'F308', '32267'])
           assert(text.includes(value));
+        const map = page.locator('.campus-map img');
+        await map.scrollIntoViewIfNeeded();
+        await page.waitForFunction(() => {
+          const img = document.querySelector('.campus-map img');
+          return img?.complete && img.naturalWidth > 0;
+        });
+        assert(await map.evaluate((img) =>
+          Math.abs(img.width / img.height - img.naturalWidth / img.naturalHeight) < 0.01 &&
+          img.getBoundingClientRect().right <= innerWidth));
+        assert((await map.getAttribute('alt')).includes('工學院'));
+        assert.equal(await page.locator('.campus-map a').getAttribute('href'), 'image/campus/first-campus-map.jpg');
+        assert((await page.locator('.campus-map figcaption').textContent()).includes('工學院'));
+        await page.locator('.campus-map a').click();
+        await page.waitForURL('**/image/campus/first-campus-map.jpg');
+        assert((await page.request.get(page.url())).ok());
+        await open('contact.html');
         assert.equal(await page.locator('a[href="mailto:jcyu@nkust.edu.tw"]').count(), 1);
         assert.equal(await page.locator('#location a[href^="https://www.google.com/maps/search/"]').count(), 1);
       }
