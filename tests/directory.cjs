@@ -194,7 +194,7 @@ for (const topic of research) {
         }
         await page.evaluate(() => scrollTo(0, 0));
         assert.equal(await page.locator('a[href="mailto:jcyu@nkust.edu.tw"]').count(), 1);
-        assert.equal(await page.locator('#location a[href^="https://www.google.com/maps/search/"]').count(), 1);
+        assert.equal(await page.locator('#location a[href^="https://www.google.com/maps/"]').count(), 0);
       }
       if (file === 'members.html') {
         assert.equal(await page.locator('#masters article').count(),
