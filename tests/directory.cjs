@@ -103,7 +103,7 @@ for (const topic of research) {
   }
   for (const width of [1440, 1024, 768, 390, 320]) {
     await page.setViewportSize({ width, height: 900 });
-    for (const file of ['members.html', 'areas.html']) {
+    for (const file of ['members.html', 'areas.html', 'contact.html', 'location.html']) {
       await open(file);
       assert(
         await page.evaluate(
@@ -119,6 +119,43 @@ for (const topic of research) {
           .getAttribute('href'),
         'areas.html',
       );
+      const menu = page.locator('header .menu');
+      if (width <= 860) {
+        await page.locator('label[for="navcheck"]').click();
+        assert(await menu.isVisible());
+      }
+      assert.deepEqual(await menu.locator('a').allTextContents().then((texts) => texts.map((text) => text.trim())),
+        ['指導教授', '研究領域', '研究成員', '最新消息', '聯絡我們']);
+      assert.equal(await menu.locator('[data-link="pubs.html"], [data-link="location.html"]').count(), 0);
+      if (width <= 860) await page.locator('label[for="navcheck"]').click();
+      if (['members.html', 'areas.html'].includes(file)) {
+        const spacing = await page.evaluate(() => {
+          const box = (selector) => document.querySelector(selector).getBoundingClientRect();
+          const heading = box('.directory-heading');
+          const nav = box('.section-nav');
+          const first = box('.directory-section article');
+          return {
+            top: heading.top - box('header').bottom,
+            eyebrow: box('h1').top - box('.eyebrow').bottom,
+            nav: nav.top - heading.bottom,
+            card: first.top - nav.bottom,
+          };
+        });
+        assert(Math.abs(spacing.top - 32) < 1, `${file}: header gap`);
+        assert(Math.abs(spacing.eyebrow - 12) < 1, `${file}: eyebrow gap`);
+        assert(Math.abs(spacing.nav - 20) < 1, `${file}: navigation gap`);
+        assert(spacing.card >= 23 && spacing.card < 100, `${file}: first card gap`);
+        if (file === 'members.html') assert(Math.abs(spacing.card - 24) < 1);
+      }
+      if (file === 'contact.html') {
+        assert.deepEqual(await page.locator('main h1, main h2').allTextContents(),
+          ['聯絡我們', '聯絡資訊', '實驗室位置與地圖']);
+        const text = await page.locator('main').textContent();
+        for (const value of ['國立高雄科技大學', '同步工程設計實驗室', '第一校區 機電工程系'])
+          assert(text.includes(value));
+        assert.equal(await page.locator('a[href="mailto:jcyu@nkust.edu.tw"]').count(), 1);
+        assert.equal(await page.locator('#location a[href^="https://www.google.com/maps/search/"]').count(), 1);
+      }
       if (file === 'members.html') {
         assert.equal(await page.locator('#masters article').count(),
           members.filter((member) => member.status === 'current' && !member.example).length);
@@ -167,6 +204,12 @@ for (const topic of research) {
         });
     }
   }
+  await open('location.html');
+  await page.locator('main a[href="contact.html#location"]').click();
+  await page.waitForURL('**/contact.html#location');
+  await page.waitForFunction(() => document.querySelector('footer #y')?.textContent.length === 4);
+  assert(await page.locator('#location').isVisible());
+  assert(await page.locator('#location').evaluate((el) => el.getBoundingClientRect().top >= 60));
   // Ordering comes from ROC academic year and explicit within-year order.
   const expectedNames = ['林奕呈', '陳杰逸', '朱溢恩', '林睿鈞', '陳竑鈞', '蔡宸祐'];
   assert.deepEqual(expectedNames.map((name) => sourceMembers.find((m) => m.name === name).admissionYear),

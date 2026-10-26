@@ -325,3 +325,24 @@ footer {
     grid-template-columns: 1fr;
   }
 }
+
+/* Contact sections share the existing card theme. */
+.contact-page {
+  padding: 32px 20px;
+}
+.contact-page h1 {
+  margin: 0 0 20px;
+}
+.contact-page h2 {
+  margin-top: 0;
+}
+.contact-page .card + .card {
+  margin-top: 20px;
+}
+.contact-page p,
+.contact-page a {
+  overflow-wrap: anywhere;
+}
+.contact-page #location {
+  scroll-margin-top: 100px;
+}

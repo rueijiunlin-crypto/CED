@@ -266,3 +266,39 @@
     height: 84px;
   }
 }
+
+/* Shared overview rhythm: status and noscript never add empty layout gaps. */
+.directory[data-directory="members"],
+.directory[data-directory="areas"] {
+  --overview-space: 20px;
+  padding-top: 32px;
+}
+.directory[data-directory="members"] .directory-heading,
+.directory[data-directory="areas"] .directory-heading {
+  margin-bottom: var(--overview-space);
+}
+.directory[data-directory="members"] .directory-heading .eyebrow,
+.directory[data-directory="areas"] .directory-heading .eyebrow {
+  margin: 0 0 12px;
+}
+.directory[data-directory="members"] .directory-heading h1,
+.directory[data-directory="areas"] .directory-heading h1 {
+  margin: 0;
+}
+.directory[data-directory="areas"] .directory-heading > .muted {
+  margin: 12px 0 0;
+}
+.directory[data-directory="members"] .section-nav,
+.directory[data-directory="areas"] .section-nav {
+  margin: 0 0 24px;
+}
+.directory #directory-status:empty {
+  display: none;
+}
+.directory[data-directory="members"] #masters,
+.directory[data-directory="areas"] #current {
+  margin-top: 0;
+}
+.directory[data-directory="areas"] #current > h2 {
+  margin-bottom: var(--overview-space);
+}
