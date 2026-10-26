@@ -1,3 +1,4 @@
+import { showImage as showResearchImage } from './image-viewer.js';
 const ROOT = new URL('../', import.meta.url);
 const PLACEHOLDER = new URL('image/member-placeholder.svg', ROOT).href;
 function node(tag, className, text) {
@@ -59,6 +60,7 @@ function researchLinks(row, model) {
   for (const id of row.researchIds || []) {
     const li = node('li');
     const topic = model.researchById.get(id);
+    if (topic?.example) continue;
     if (topic) li.append(link(topic.title, researchDetailHref(topic)));
     else li.textContent = '研究資料待補';
     list.append(li);
@@ -94,11 +96,28 @@ export function memberCard(member, model) {
   const image = member.status === 'current' || member.photo
     ? photo(member.photo, `${member.name}的照片`, true) : null;
   const { el, content } = peopleCard(`member-${member.id}`, member.name, member.example, image);
-  const label = [memberIdentity(member), member.grade].filter(Boolean).join(' · ');
-  content.append(node('p', 'member-meta', label));
+  // Directory labels are independent of research-detail participant labels.
+  let identity = memberIdentity(member);
+  if (member.status === 'current') {
+    identity = '研究生';
+    if (Number.isInteger(member.admissionYear) && member.admissionYear > 0)
+      identity += ` · ${member.admissionYear} 學年度入學`;
+  } else if (member.status === 'alumni' && ['master', 'phd'].includes(member.degree)) {
+    identity = `${member.degree === 'phd' ? '博士' : '碩士'}畢業生`;
+  }
+  if (member.status === 'current' || member.identity?.trim() || ['master', 'phd'].includes(member.degree))
+    content.append(node('p', 'member-meta', identity));
   const fields = node('dl', 'member-fields');
-  appendField(fields, '研究主題', member.researchTopic);
-  appendField(fields, '研究方向', member.researchFocus);
+  if (member.status === 'alumni' && member.researchFocus?.trim()) {
+    const row = node('div', 'member-field');
+    const value = node('dd');
+    const tags = node('ul', 'technology-tags');
+    for (const keyword of member.researchFocus.split('、').map((text) => text.trim()).filter(Boolean))
+      tags.append(node('li', '', keyword));
+    value.append(tags);
+    row.append(node('dt', '', '研究方向'), value);
+    fields.append(row);
+  } else appendField(fields, '研究方向', member.researchFocus);
   const coAdvisors = [...new Set(model.participations
     .filter((row) => row.memberId === member.id)
     .flatMap((row) => row.thesis?.coAdvisors || [])
@@ -126,7 +145,7 @@ export function groupCard(group, model) {
 function relatedPeople(topic, model) {
   const people = node('ul', 'people-links');
   for (const member of model.members.filter((m) =>
-    (m.researchIds || []).includes(topic.id),
+    !m.example && (m.researchIds || []).includes(topic.id),
   )) {
     const li = node('li');
     li.append(
@@ -138,7 +157,7 @@ function relatedPeople(topic, model) {
     people.append(li);
   }
   for (const group of model.groups.filter(
-    (g) => g.status === 'current' && (g.researchIds || []).includes(topic.id),
+    (g) => g.status === 'current' && !g.example && (g.researchIds || []).includes(topic.id),
   )) {
     const li = node('li');
     li.append(
@@ -151,7 +170,9 @@ function relatedPeople(topic, model) {
   return people;
 }
 function memberIdentity(member) {
+  if (member.identity?.trim()) return member.identity;
   const degree = { master: '碩士', phd: '博士' }[member.degree] || '';
+  if (!degree) return member.status === 'alumni' ? '畢業成員' : '在籍研究成員';
   return `${degree}${member.status === 'alumni' ? '畢業生' : '研究生'}`;
 }
 function publicationUrl(path) {
@@ -168,7 +189,7 @@ function researchParticipants(topic, model) {
   const sections = [];
   for (const status of ['current', 'alumni']) {
     const members = model.members.filter((member) =>
-      member.status === status && member.researchIds.includes(topic.id),
+      member.status === status && !member.example && member.researchIds.includes(topic.id),
     );
     if (!members.length) continue;
     const block = node('section', 'research-detail-section');
@@ -276,49 +297,6 @@ function researchPhoto(path, alt) {
   )
     return null;
   return photo(path, alt);
-}
-function showResearchImage(source, trigger) {
-  const dialog = node('dialog', 'research-image-viewer');
-  dialog.setAttribute('aria-label', '研究圖片放大檢視');
-  const close = node('button', 'research-image-close', '關閉圖片');
-  close.type = 'button';
-  close.autofocus = true;
-  const figure = node('figure');
-  const image = node('img');
-  image.alt = source.alt;
-  image.addEventListener(
-    'error',
-    () => image.replaceWith(node('p', '', '圖片暫時無法載入。')),
-    { once: true },
-  );
-  image.src = source.src;
-  figure.append(image);
-  const caption = trigger.closest('figure').querySelector('figcaption');
-  if (caption) figure.append(node('figcaption', '', caption.textContent));
-  dialog.append(close, figure);
-  close.addEventListener('click', () => dialog.close());
-  // The close button is the viewer's only focusable control.
-  dialog.addEventListener('keydown', (event) => {
-    if (event.key === 'Tab') {
-      event.preventDefault();
-      close.focus();
-    }
-  });
-  dialog.addEventListener('click', (event) => {
-    if (event.target === dialog) dialog.close();
-  });
-  dialog.addEventListener(
-    'close',
-    () => {
-      document.documentElement.classList.remove('research-image-open');
-      dialog.remove();
-      if (trigger.isConnected) trigger.focus();
-    },
-    { once: true },
-  );
-  document.body.append(dialog);
-  document.documentElement.classList.add('research-image-open');
-  dialog.showModal();
 }
 function researchFigure(item, fallbackAlt, onError) {
   const image = researchPhoto(item.src, item.alt?.trim() || fallbackAlt);
@@ -436,7 +414,8 @@ export function researchDetail(topic, model) {
   const tags = technologyTags(topic);
   if (tags) el.append(tags);
   // Use the same reverse lookup when confirmed people are assigned in future.
-  if (model.participations.some((row) => row.researchId === topic.id)) {
+  if (model.participations.some((row) => row.researchId === topic.id) ||
+      model.members.some((member) => !member.example && member.researchIds.includes(topic.id))) {
     el.append(...researchParticipants(topic, model));
   } else {
     const people = relatedPeople(topic, model);
@@ -470,7 +449,7 @@ export function fillGrid(container, rows, render, className = '') {
 export function renderAlumni(container, model) {
   container.replaceChildren();
   const years = new Map();
-  for (const member of model.members.filter((m) => m.status === 'alumni')) {
+  for (const member of model.members.filter((m) => m.status === 'alumni' && !m.example)) {
     const year = Number.isInteger(member.graduationYear)
       ? member.graduationYear
       : null;

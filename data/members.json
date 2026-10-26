@@ -1,92 +1,5 @@
 [
   {
-    "id": "master-1",
-    "name": "研究生範例 A",
-    "degree": "master",
-    "status": "current",
-    "grade": "M2",
-    "researchIds": [
-      "lgp"
-    ],
-    "example": true
-  },
-  {
-    "id": "master-2",
-    "name": "研究生範例 B",
-    "degree": "master",
-    "status": "current",
-    "grade": "M1",
-    "researchIds": [
-      "lgp",
-      "diagnostics"
-    ],
-    "example": true
-  },
-  {
-    "id": "master-3",
-    "name": "研究生範例 C",
-    "degree": "master",
-    "status": "current",
-    "grade": "M2",
-    "researchIds": [
-      "diagnostics"
-    ],
-    "example": true
-  },
-  {
-    "id": "master-4",
-    "name": "研究生範例 D",
-    "degree": "master",
-    "status": "current",
-    "grade": "M1",
-    "researchIds": [
-      "robot"
-    ],
-    "example": true
-  },
-  {
-    "id": "master-5",
-    "name": "研究生範例 E",
-    "degree": "master",
-    "status": "current",
-    "grade": "M1",
-    "researchIds": [
-      "robot"
-    ],
-    "example": true
-  },
-  {
-    "id": "alumni-demo-1",
-    "name": "畢業成員範例 A",
-    "degree": "master",
-    "status": "alumni",
-    "graduationYear": 2025,
-    "researchIds": [
-      "concurrent"
-    ],
-    "photo": "image/member-placeholder.svg",
-    "example": true
-  },
-  {
-    "id": "alumni-demo-2",
-    "name": "畢業成員範例 B",
-    "degree": "phd",
-    "status": "alumni",
-    "graduationYear": 2024,
-    "researchIds": [
-      "robust"
-    ],
-    "example": true
-  },
-  {
-    "id": "alumni-demo-3",
-    "name": "畢業成員範例 C",
-    "degree": "master",
-    "status": "alumni",
-    "graduationYear": 2024,
-    "example": true
-  },
-  {
     "id": "lin-ruei-jiun",
     "name": "林睿鈞",
     "degree": "master",
@@ -94,7 +7,9 @@
     "example": false,
     "introduction": "以視覺語言模型與無人機視覺感知為研究核心，探討空拍影像的即時傳輸、場景理解及目標辨識技術，並結合視覺目標定位與影像分割方法，發展智慧化環境感知能力。未來將探索相關技術於空拍機與地面機器人協作系統中的應用。",
     "researchTopic": "視覺語言模型與空地協作自主系統",
-    "researchFocus": "視覺語言模型、無人機視覺感知、空地協作"
+    "researchFocus": "視覺語言模型、無人機視覺感知、空地協作",
+    "admissionYear": 115,
+    "admissionOrder": 1
   },
   {
     "id": "yan-jia-yuan",
@@ -103,6 +18,73 @@
     "status": "alumni",
     "graduationYear": 2026,
     "example": false,
-    "researchTopic": "自主割草機器人導航框架"
+    "researchTopic": "自主割草機器人導航框架",
+    "researchFocus": "自主移動機器人、空拍輔助建圖、語義分割、自主導航、覆蓋路徑規劃"
+  },
+  {
+    "id": "chen-hong-jun",
+    "name": "陳竑鈞",
+    "status": "current",
+    "researchIds": [
+      "thinning-weeding-robot"
+    ],
+    "example": false,
+    "admissionYear": 115,
+    "admissionOrder": 2
+  },
+  {
+    "id": "chen-jie-yi",
+    "name": "陳杰逸",
+    "status": "current",
+    "researchIds": [
+      "thinning-weeding-robot"
+    ],
+    "example": false,
+    "admissionYear": 114,
+    "admissionOrder": 1
+  },
+  {
+    "id": "cai-chen-you",
+    "name": "蔡宸祐",
+    "status": "current",
+    "researchIds": [
+      "marine-trash-collection-vessel"
+    ],
+    "example": false,
+    "admissionYear": 115,
+    "admissionOrder": 3
+  },
+  {
+    "id": "zhu-yi-en",
+    "name": "朱溢恩",
+    "status": "current",
+    "researchIds": [
+      "marine-trash-collection-vessel"
+    ],
+    "example": false,
+    "admissionYear": 114,
+    "admissionOrder": 2
+  },
+  {
+    "id": "lin-yi-cheng",
+    "name": "林奕呈",
+    "status": "current",
+    "researchIds": [
+      "marine-trash-collection-vessel"
+    ],
+    "example": false,
+    "admissionYear": 113,
+    "admissionOrder": 1
+  },
+  {
+    "id": "lin-zhi-en",
+    "name": "林志恩",
+    "identity": "應屆畢業成員",
+    "status": "alumni",
+    "graduationYear": 2026,
+    "researchIds": [
+      "thinning-weeding-robot"
+    ],
+    "example": false
   }
 ]

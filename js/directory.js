@@ -46,16 +46,28 @@ try {
     fillGrid(
       section('masters'),
       model.members.filter(
-        (m) => m.status === 'current' && ['master', 'phd'].includes(m.degree),
-      ),
+        (m) => m.status === 'current' && !m.example,
+      ).sort((a, b) => {
+        // ROC admission academic years are numeric labels, not Gregorian dates.
+        const year = (m) => Number.isInteger(m.admissionYear) && m.admissionYear > 0
+          ? m.admissionYear : Infinity;
+        const order = (m) => Number.isInteger(m.admissionOrder)
+          ? m.admissionOrder : Infinity;
+        return (year(a) - year(b)) || (order(a) - order(b)) ||
+          a.id.localeCompare(b.id);
+      }),
       (m) => memberCard(m, model),
       'member-grid',
     );
-    fillGrid(
-      section('groups'),
-      model.groups.filter((g) => g.status === 'current'),
-      (g) => groupCard(g, model),
-    );
+    // Keep the team renderer available; removing `hidden` restores this block.
+    const groupsSection = document.getElementById('groups');
+    if (groupsSection && !groupsSection.hidden) {
+      fillGrid(
+        section('groups'),
+        model.groups.filter((g) => g.status === 'current' && !g.example),
+        (g) => groupCard(g, model),
+      );
+    }
     renderAlumni(section('alumni'), model);
   } else if (main.dataset.directory === 'research-detail') {
     const ids = new URLSearchParams(location.search).getAll('id');

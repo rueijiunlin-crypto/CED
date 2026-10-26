@@ -27,10 +27,17 @@ for (const row of [...members, ...groups])
     assert(research.some((r) => r.id === id));
 for (const topic of research)
   if (topic.detailUrl) assert(fs.existsSync(path.join(root, topic.detailUrl)));
-for (const member of members) {
-  if (member.example) assert(member.name.includes('範例'));
-  else assert(!member.name.includes('範例'));
+assert.equal(sourceMembers.length, 8);
+assert(sourceMembers.every((member) => !member.example));
+assert.deepEqual(members.filter((member) => member.status === 'current').map((member) => member.name),
+  ['林睿鈞', '陳竑鈞', '陳杰逸', '蔡宸祐', '朱溢恩', '林奕呈']);
+for (const member of sourceMembers.filter((member) => !['lin-ruei-jiun', 'yan-jia-yuan'].includes(member.id))) {
+  for (const field of ['degree', 'grade', 'photo', 'researchTopic', 'researchFocus'])
+    assert.equal(member[field], undefined);
 }
+const detailSectionCount = (topic) => (topic.sections || []).length +
+  new Set(members.filter((member) => !member.example && member.researchIds.includes(topic.id)).map((member) => member.status)).size +
+  ((topic.gallery || []).some((image) => image.src !== topic.image) ? 1 : 0);
 for (const group of groups) {
   assert(group.name.includes('範例'));
   assert(group.memberNames.every((n) => n.includes('範例')));
@@ -94,9 +101,95 @@ for (const topic of research) {
         () => document.querySelector('#directory-status')?.textContent === '',
       );
   }
+  const piEducation = ['美國俄亥俄州立大學機械工程博士', '美國俄亥俄州立大學機械工程碩士', '國立臺灣大學機械工程學士'];
+  const piInterests = ['智慧服務型機器人', '品質最佳化設計', '導光板設計與應用', '同步工程設計', '微感測器設計與製造'];
+  const piExperience = ['國立高雄科技大學工學院代理院長（2022–2023）', '國立高雄科技大學工學院副院長（2019–2022）', '美國史丹佛大學機械工程系客座教授（2016）', '國立高雄第一科技大學研究發展處處長（2014–2016）', '國立高雄第一科技大學機械與自動化工程系系主任（2011–2014）', '國立臺灣科技大學機械工程系副教授', '工業技術研究院機械工業研究所研究員'];
+  const piHonors = ['2019 年中華工程教育學會教學傑出獎', '國立高雄科技大學 109 年度特殊優秀教學人才卓越教學獎', '2020 年田口品質工程法線上課程全國線上推廣教育最佳專業教師獎'];
+  for (const width of [1440, 1024, 768, 390, 320]) {
+    await page.setViewportSize({ width, height: 1000 });
+    await open('pi.html');
+    assert.equal(await page.locator('#pi-name').textContent(), '余志成');
+    assert.equal(await page.locator('.pi-english').textContent(), 'Jyh-Cheng Jason Yu');
+    assert.equal(await page.locator('.pi-position').textContent(), '特聘教授');
+    assert.deepEqual(await page.locator('.pi-tags li').allTextContents(), piInterests);
+    assert.deepEqual(await page.locator('#pi-education li').allTextContents(), piEducation);
+    assert.deepEqual(await page.locator('#pi-experience li').allTextContents(), piExperience);
+    assert.deepEqual(await page.locator('#pi-honors li').allTextContents(), piHonors);
+    assert.deepEqual(await page.locator('.pi-section > h2').allTextContents(), ['研究專長', '學歷', '重要經歷', '教學榮譽', '聯絡資訊與官方資料連結']);
+    assert.deepEqual(await page.locator('.pi-contact dd').allTextContents(), ['jcyu@nkust.edu.tw', '第一校區工學院 F308', '07-6011000 #32228', '第一校區工學院 F360', '07-6011000 #32267']);
+    assert.equal(await page.locator('main a[href="mailto:jcyu@nkust.edu.tw"]').count(), 1);
+    assert.equal(await page.locator('a[href="tel:+88676011000;ext=32228"]').textContent(), '07-6011000 #32228');
+    assert.equal(await page.locator('a[href="tel:+88676011000;ext=32267"]').textContent(), '07-6011000 #32267');
+    const text = await page.locator('main').textContent();
+    for (const removed of ['範例', 'XX 大學', '台灣大學 機械工程博士']) assert(!text.includes(removed));
+    assert.equal(await page.locator('main img[src^="http"]').count(), 0);
+    assert.equal(await page.locator('.pi-profile img').getAttribute('src'), 'image/index/教授照片.jpg');
+    await page.waitForFunction(() => document.querySelector('.pi-profile img')?.naturalWidth > 0);
+    assert(await page.locator('.pi-profile img').evaluate((img) => Math.abs(img.width / img.height - img.naturalWidth / img.naturalHeight) < 0.01));
+    const image = await page.locator('.pi-profile img').boundingBox();
+    const bio = await page.locator('.pi-profile > div').boundingBox();
+    if (width > 600) assert(bio.x > image.x + image.width);
+    else assert(bio.y >= image.y + image.height);
+    assert.deepEqual(await page.locator('.pi-sources a').evaluateAll((links) => links.map((a) => a.href)), [
+      'https://mae.nkust.edu.tw/p/426-1136-5.php',
+      'https://mae.nkust.edu.tw/p/426-1136-63.php?Lang=en',
+      'https://www2.nkust.edu.tw/~jcyu/others/PR.html',
+      'https://excellentteacher.moe.edu.tw/2021/teacher3_69.htm',
+    ]);
+    assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+    if ([1440, 390].includes(width)) await page.screenshot({ path: path.join(screenshotDir, `ced-pi-${width === 1440 ? 'desktop' : 'mobile'}.png`), fullPage: true });
+  }
+  // Home uses only the five confirmed local images and existing detail routes.
+  const homeProjects = [
+    ['mowing-robot', '割草機器人', '割草機.png'],
+    ['thinning-weeding-robot', '疏苗除草機器人', '書苗除草機器人.jpg'],
+    ['marine-trash-collection-vessel', '垃圾收集海漂船', '海漂船.jpg'],
+  ];
+  for (const filename of ['同步工程設計實驗室形象首頁.png', '教授照片.jpg', ...homeProjects.map((row) => row[2])])
+    assert(fs.existsSync(path.join(root, 'image/index', filename)));
+  for (const width of [1440, 1024, 768, 390, 320]) {
+    await page.setViewportSize({ width, height: 1000 });
+    await open('index.html');
+    await page.locator('main img').evaluateAll((images) => images.forEach((img) => img.loading = 'eager'));
+    await page.waitForFunction(() => [...document.querySelectorAll('main img')].every((img) => img.complete && img.naturalWidth > 0));
+    assert.equal(await page.locator('main img').count(), 5);
+    assert.equal(await page.locator('main img[src^="http"], main table, main a[href="pubs.html"]').count(), 0);
+    assert.deepEqual(await page.locator('main section > .section-title h2').allTextContents(), ['指導教授', '研究領域', '最新消息']);
+    const text = await page.locator('main').textContent();
+    for (const removed of ['範例', '示範', '歷年研究模板', '期刊論文', '2025/09/01', '研究生徵才'])
+      assert(!text.includes(removed));
+    assert.equal(await page.locator('.home-news').textContent().then((text) => text.trim()), '目前尚無最新消息。');
+    assert.equal(await page.locator('.home-professor h3').textContent(), '余志成特聘教授');
+    assert((await page.locator('.home-professor').textContent()).includes('國立高雄科技大學 機電工程系'));
+    assert.equal(await page.locator('.home-professor a').getAttribute('href'), 'pi.html');
+    for (const selector of ['.home-hero img', '.home-professor > img']) {
+      assert(await page.locator(selector).evaluate((img) =>
+        Math.abs(img.width / img.height - img.naturalWidth / img.naturalHeight) < 0.01));
+    }
+    const hero = await page.locator('.home-hero').boundingBox();
+    const professor = await page.locator('main > section').first().boundingBox();
+    assert(Math.abs(professor.y - hero.y - hero.height - 48) < 1);
+    const portrait = await page.locator('.home-professor > img').boundingBox();
+    const biography = await page.locator('.home-professor > div').boundingBox();
+    if (width > 600) assert(biography.x > portrait.x + portrait.width);
+    else assert(biography.y >= portrait.y + portrait.height);
+    assert.equal(await page.locator('.home-research-grid').evaluate((el) => getComputedStyle(el).gridTemplateColumns.split(' ').length), width > 900 ? 3 : width > 600 ? 2 : 1);
+    assert.deepEqual(await page.locator('.home-research-card h3').allTextContents(), homeProjects.map((row) => row[1]));
+    assert(await page.locator('.home-research-card img').evaluateAll((images) => images.every((img) => getComputedStyle(img).objectFit === 'contain')));
+    assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+    if ([1440, 390].includes(width)) await page.screenshot({ path: path.join(screenshotDir, `ced-home-${width === 1440 ? 'desktop' : 'mobile'}.png`), fullPage: true });
+    for (const [index, [id, title]] of homeProjects.entries()) {
+      await page.locator('.home-research-card').nth(index).click();
+      await page.waitForURL(new URL(`areas/research.html?id=${id}`, base).href);
+      await page.waitForFunction((title) => document.querySelector('main h1')?.textContent === title, title);
+      await open('index.html');
+    }
+    await page.locator('.home-professor a').click();
+    await page.waitForURL('**/pi.html');
+  }
   for (const width of [1440, 1024, 768, 390, 320]) {
     await page.setViewportSize({ width, height: 900 });
-    for (const file of ['members.html', 'areas.html']) {
+    for (const file of ['members.html', 'areas.html', 'contact.html', 'location.html']) {
       await open(file);
       assert(
         await page.evaluate(
@@ -112,9 +205,113 @@ for (const topic of research) {
           .getAttribute('href'),
         'areas.html',
       );
+      const menu = page.locator('header .menu');
+      if (width <= 860) {
+        await page.locator('label[for="navcheck"]').click();
+        assert(await menu.isVisible());
+      }
+      assert.deepEqual(await menu.locator('a').allTextContents().then((texts) => texts.map((text) => text.trim())),
+        ['指導教授', '研究領域', '研究成員', '最新消息', '聯絡我們']);
+      assert.equal(await menu.locator('[data-link="pubs.html"], [data-link="location.html"]').count(), 0);
+      if (width <= 860) await page.locator('label[for="navcheck"]').click();
+      if (['members.html', 'areas.html'].includes(file)) {
+        const spacing = await page.evaluate(() => {
+          const box = (selector) => document.querySelector(selector).getBoundingClientRect();
+          const heading = box('.directory-heading');
+          const nav = box('.section-nav');
+          const first = box('.directory-section article');
+          return {
+            top: heading.top - box('header').bottom,
+            eyebrow: box('h1').top - box('.eyebrow').bottom,
+            nav: nav.top - heading.bottom,
+            card: first.top - nav.bottom,
+          };
+        });
+        assert(Math.abs(spacing.top - 32) < 1, `${file}: header gap`);
+        assert(Math.abs(spacing.eyebrow - 12) < 1, `${file}: eyebrow gap`);
+        assert(Math.abs(spacing.nav - 20) < 1, `${file}: navigation gap`);
+        assert(spacing.card >= 23 && spacing.card < 100, `${file}: first card gap`);
+        if (file === 'members.html') assert(Math.abs(spacing.card - 24) < 1);
+      }
+      if (['contact.html', 'location.html'].includes(file)) {
+        const lab = page.locator('main p').filter({ hasText: '實驗室位置：工學院 F360' });
+        const office = page.locator('main p').filter({ hasText: '余志成教授研究室位置：工學院 F308' });
+        assert.equal(await lab.count(), 1);
+        assert.equal(await office.count(), 1);
+        const labBox = await lab.boundingBox();
+        const officeBox = await office.boundingBox();
+        assert(officeBox.y >= labBox.y + labBox.height, 'locations must occupy separate lines');
+      }
+      if (file === 'contact.html') {
+        assert.deepEqual(await page.locator('main h1, main h2').allTextContents(),
+          ['聯絡我們', '聯絡資訊', '實驗室位置']);
+        const text = await page.locator('main').textContent();
+        for (const value of ['國立高雄科技大學', '同步工程設計實驗室', '第一校區', '工學院', 'F360', 'F308', '32267'])
+          assert(text.includes(value));
+        const map = page.locator('.campus-map img');
+        await map.scrollIntoViewIfNeeded();
+        await page.waitForFunction(() => {
+          const img = document.querySelector('.campus-map img');
+          return img?.complete && img.naturalWidth > 0;
+        });
+        assert(await map.evaluate((img) =>
+          Math.abs(img.width / img.height - img.naturalWidth / img.naturalHeight) < 0.01 &&
+          img.getBoundingClientRect().right <= innerWidth));
+        assert((await map.getAttribute('alt')).includes('工學院'));
+        assert.equal(await page.locator('.campus-map a').getAttribute('href'), 'image/campus/first-campus-map.jpg');
+        assert((await page.locator('.campus-map figcaption').textContent()).includes('工學院'));
+        const trigger = page.locator('.campus-map a');
+        const contactUrl = page.url();
+        for (const method of ['escape', 'button', 'backdrop']) {
+          await trigger.click();
+          const viewer = page.getByRole('dialog', { name: '校園地圖放大檢視' });
+          await viewer.waitFor({ state: 'visible' });
+          assert.equal(page.url(), contactUrl);
+          assert((await viewer.locator('img').getAttribute('src')).endsWith('image/campus/first-campus-map.jpg'));
+          assert.equal(await viewer.locator('img').evaluate((img) => getComputedStyle(img).objectFit), 'contain');
+          await page.keyboard.press('Tab');
+          assert(await viewer.evaluate((el) => el.contains(document.activeElement)));
+          if (method === 'escape') {
+            const zoomIn = viewer.getByRole('button', { name: '放大', exact: true });
+            const zoomOut = viewer.getByRole('button', { name: '縮小', exact: true });
+            const reset = viewer.getByRole('button', { name: '還原', exact: true });
+            await page.waitForFunction(() => document.querySelector('.image-zoom-image')?.naturalWidth > 0);
+            const initial = await viewer.locator('img').boundingBox();
+            assert(await zoomOut.isDisabled());
+            await zoomIn.click();
+            const larger = await viewer.locator('img').boundingBox();
+            assert(Math.abs(larger.width / initial.width - 1.5) < 0.01);
+            assert.equal(await viewer.locator('.image-zoom-level').textContent(), '150%');
+            await zoomOut.click();
+            assert.equal(await viewer.locator('.image-zoom-level').textContent(), '100%');
+            for (let step = 0; step < 6; step++) await zoomIn.click();
+            assert.equal(await viewer.locator('.image-zoom-level').textContent(), '400%');
+            assert(await zoomIn.isDisabled());
+            assert(await viewer.locator('.image-zoom-viewport').evaluate((el) => {
+              el.scrollTo(el.scrollWidth, el.scrollHeight);
+              return el.scrollLeft > 0 || el.scrollTop > 0;
+            }));
+            assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+            await reset.click();
+            assert.equal(await viewer.locator('.image-zoom-level').textContent(), '100%');
+            assert(await viewer.locator('.image-zoom-viewport').evaluate((el) => el.scrollTop === 0 && el.scrollLeft === 0));
+            const restored = await viewer.locator('img').boundingBox();
+            assert(Math.abs(restored.width - initial.width) < 1);
+          }
+          if (method === 'escape') await page.keyboard.press('Escape');
+          else if (method === 'button') await viewer.getByRole('button', { name: '關閉圖片' }).click();
+          else await page.mouse.click(1, 1);
+          await page.locator('dialog.research-image-viewer').waitFor({ state: 'detached' });
+          assert(await trigger.evaluate((el) => el === document.activeElement));
+          assert.equal(await page.locator('html.research-image-open').count(), 0);
+        }
+        await page.evaluate(() => scrollTo(0, 0));
+        assert.equal(await page.locator('a[href="mailto:jcyu@nkust.edu.tw"]').count(), 1);
+        assert.equal(await page.locator('#location a[href^="https://www.google.com/maps/"]').count(), 0);
+      }
       if (file === 'members.html') {
         assert.equal(await page.locator('#masters article').count(),
-          members.filter((member) => member.status === 'current' && ['master', 'phd'].includes(member.degree)).length);
+          members.filter((member) => member.status === 'current' && !member.example).length);
         const cols = await page
           .locator('[data-section="masters"]')
           .evaluate(
@@ -124,7 +321,7 @@ for (const topic of research) {
       }
       if (file === 'areas.html') {
         assert.deepEqual(
-          await page.locator('main > section > h2').allTextContents(),
+          await page.locator('main > section:visible > h2').allTextContents(),
           ['進行中的研究', '歷屆研究'],
         );
         assert.equal(await page.locator('#current article').count(), 3);
@@ -160,6 +357,67 @@ for (const topic of research) {
         });
     }
   }
+  await open('location.html');
+  await page.locator('main a[href="contact.html#location"]').click();
+  await page.waitForURL('**/contact.html#location');
+  await page.waitForFunction(() => document.querySelector('footer #y')?.textContent.length === 4);
+  assert(await page.locator('#location').isVisible());
+  assert(await page.locator('#location').evaluate((el) => el.getBoundingClientRect().top >= 60));
+  // Footer fills short viewports and follows long content without covering it.
+  for (const width of [1440, 768, 390, 320]) {
+    await page.setViewportSize({ width, height: 1200 });
+    for (const file of ['location.html', 'contact.html', 'index.html', 'members.html', 'areas.html', 'pi.html', 'pubs.html', 'news.html', detailFile(currentResearch[0])]) {
+      await open(file);
+      const layout = await page.evaluate(() => {
+        const footer = document.querySelector('footer');
+        const main = document.querySelector('main');
+        const f = footer.getBoundingClientRect();
+        const m = main.getBoundingClientRect();
+        return {
+          footerTop: f.top + scrollY, footerBottom: f.bottom + scrollY,
+          contentBottom: m.bottom + scrollY, height: innerHeight,
+          pageHeight: document.documentElement.scrollHeight,
+          position: getComputedStyle(footer).position,
+          fits: document.documentElement.scrollWidth <= innerWidth,
+        };
+      });
+      assert(!['fixed', 'absolute', 'sticky'].includes(layout.position), file);
+      assert(layout.footerTop >= layout.contentBottom, `${file}: footer overlaps main`);
+      assert(Math.abs(layout.footerBottom - layout.pageHeight) < 2, `${file}: footer not last`);
+      assert(layout.footerBottom >= layout.height - 1, `${file}: footer above viewport bottom`);
+      assert(layout.fits, `${file}: overflow at ${width}`);
+      if (file === 'location.html') assert(Math.abs(layout.footerBottom - layout.height) < 2, 'short-page footer');
+      if (file === 'members.html') assert(layout.footerTop > layout.height, 'long-page footer');
+    }
+  }
+  // Ordering comes from ROC academic year and explicit within-year order.
+  const expectedNames = ['林奕呈', '陳杰逸', '朱溢恩', '林睿鈞', '陳竑鈞', '蔡宸祐'];
+  assert.deepEqual(expectedNames.map((name) => sourceMembers.find((m) => m.name === name).admissionYear),
+    [113, 114, 114, 115, 115, 115]);
+  await page.route('**/data/members.json', (route) => route.fulfill({ json: [
+    { id: 'unknown-admission', name: '未設定學年度', status: 'current' },
+    ...[...sourceMembers].reverse(),
+  ] }));
+  await open('members.html');
+  assert.deepEqual(await page.locator('#masters h3').allTextContents(),
+    [...expectedNames, '未設定學年度']);
+  await page.unroute('**/data/members.json');
+  for (const width of [1440, 390]) {
+    await page.setViewportSize({ width, height: 900 });
+    await open('members.html');
+    assert.deepEqual(await page.locator('#masters h3').allTextContents(), expectedNames);
+    assert.equal(await page.getByRole('heading', { name: '研究成員', exact: true }).count(), 1);
+    const text = await page.locator('main').textContent();
+    for (const removed of ['研究成員與歷屆畢業成員的研究連結。', '以個人為起點，探索彼此連結的研究方向。'])
+      assert(!text.includes(removed));
+    assert.equal(await page.locator('#masters').getAttribute('aria-label'), '研究成員');
+    for (const id of ['alumni', 'masters']) {
+      await page.locator(`.section-nav a[href="#${id}"]`).click();
+      await page.waitForFunction((id) => location.hash === '#' + id, id);
+      assert(await page.locator('#' + id).isVisible());
+      assert(await page.locator('#' + id).evaluate((el) => el.getBoundingClientRect().top >= 60));
+    }
+  }
   // Resolve every generated cross-page link and verify its actual destination card.
   for (const file of ['members.html', 'areas.html']) {
     await open(file);
@@ -190,15 +448,15 @@ for (const topic of research) {
   assert.equal(
     await page
       .locator(
-        '#member-alumni-demo-3 img, #member-alumni-demo-3 .research-links',
+        '#member-yan-jia-yuan img',
       )
       .count(),
     0,
   );
   await page.locator('.alumni-year summary').last().click();
-  await page.evaluate(() => (location.hash = 'member-alumni-demo-2'));
+  await page.evaluate(() => (location.hash = 'member-yan-jia-yuan'));
   await page.waitForFunction(
-    () => document.querySelector('#member-alumni-demo-2').closest('details').open,
+    () => document.querySelector('#member-yan-jia-yuan').closest('details').open,
   );
   await page.setViewportSize({ width: 390, height: 844 });
   await page.locator('label[for="navcheck"]').click();
@@ -231,7 +489,7 @@ for (const topic of research) {
       if (topic.category === 'current') {
         assert.equal(await page.locator('main h1').textContent(), topic.title);
         assert.equal(await page.title(), `${topic.title} | CED Lab`);
-        assert.equal(await page.locator('.research-detail-section').count(), 3 + ((topic.gallery || []).some((image) => image.src !== topic.image) ? 1 : 0));
+        assert.equal(await page.locator('.research-detail-section').count(), detailSectionCount(topic));
         assert.equal(
           await page.locator('.sample-notice, .badge').count(),
           0,
@@ -240,7 +498,7 @@ for (const topic of research) {
         assert.equal(await page.locator('main h3').textContent(), topic.title);
       }
       assert.equal(await page.locator('main img').count(),
-        topic.id === 'mowing-robot' ? 1 + (topic.image ? 1 : 0) + (topic.gallery || []).filter((image) => image.src !== topic.image).length : 0);
+        members.filter((member) => !member.example && member.status === 'current' && member.researchIds.includes(topic.id)).length + (topic.image ? 1 : 0) + (topic.gallery || []).filter((image) => image.src !== topic.image).length);
       assert.equal(
         await page
           .locator(
@@ -285,7 +543,7 @@ for (const topic of research) {
         .map((m) => `member-${m.id}`),
       ...groups
         .filter((g) =>
-          g.status === 'current' && (g.researchIds || []).includes(topic.id),
+          g.status === 'current' && !g.example && (g.researchIds || []).includes(topic.id),
         )
         .map((g) => `group-${g.id}`),
     ];
@@ -343,7 +601,7 @@ for (const topic of research) {
     title: '模板測試範例 <img src=x onerror=alert(1)>',
     category: 'current',
     status: '測試狀態',
-    example: true,
+    example: false,
     summary: '測試簡介',
     field: '測試應用',
     introduction: '測試介紹',
@@ -387,10 +645,10 @@ for (const topic of research) {
   assert(!text.includes('空段落'));
   assert.equal(await page.locator('main h1 img, main script').count(), 0);
   assert.equal(await page.locator('.technology-tags li').count(), 2);
-  assert.equal(await page.locator('.people-links a').count(), 2);
-  await page.locator('main img').scrollIntoViewIfNeeded();
+  assert.equal(await page.locator('.people-links a').count(), 1);
+  await page.locator('.research-figure img').scrollIntoViewIfNeeded();
   await page.waitForFunction(() => {
-    const img = document.querySelector('main img');
+    const img = document.querySelector('.research-figure img');
     return img?.complete && img.naturalWidth > 0;
   });
   await open('areas.html');
@@ -401,7 +659,7 @@ for (const topic of research) {
     await page.locator(
       `.research-links a[href="${new URL(detailFile(newTopic), base).href}"]`,
     ).count(),
-    2,
+    1,
   );
   await page.unroute('**/data/members.json');
   await page.unroute('**/data/groups.json');
@@ -416,7 +674,7 @@ for (const topic of research) {
   await page.locator('#research-template-test a').click();
   await page.waitForURL(new URL(detailFile(newTopic), base).href);
   await page.waitForFunction(() => document.querySelector('#research-template-test'));
-  assert.equal(await page.locator('main img').count(), 0);
+  assert.equal(await page.locator('.research-figure img').count(), 0);
   // Empty optional data produces no blank sections, image, tags, or people blocks.
   await page.route('**/data/research.json', (route) =>
     route.fulfill({ json: [
@@ -588,18 +846,25 @@ for (const topic of research) {
   for (const width of [1440, 1024, 768, 390, 320]) {
     await page.setViewportSize({ width, height: 900 });
     await open('members.html');
-    assert.deepEqual(await page.locator('main > section > h2').allTextContents(),
-      ['在籍研究生', '大學部專題團隊', '歷屆畢業成員']);
+    assert.deepEqual(await page.locator('main > section:visible > h2').allTextContents(),
+      ['歷屆畢業成員']);
     const card = page.locator('#member-lin-ruei-jiun');
     assert.equal(await card.locator('h3').textContent(), '林睿鈞');
-    assert.equal(await card.locator('.member-meta').textContent(), '碩士研究生');
+    assert.equal(await card.locator('.member-meta').textContent(), '研究生 · 115 學年度入學');
     assert.deepEqual(await card.locator('dd').allTextContents(), [
-      '視覺語言模型與空地協作自主系統',
       '視覺語言模型、無人機視覺感知、空地協作',
     ]);
     assert(!(await card.textContent()).includes(profile.introduction));
     assert.equal(await page.getByText(/^參與角色：|^指導教授：/).count(), 0);
     assert.equal(await page.getByText('共同指導教授', { exact: true }).count(), 0);
+    assert.equal(await page.getByText('研究主題', { exact: true }).count(), 0);
+    assert(!(await page.locator('main').textContent()).includes(profile.researchTopic));
+    assert.equal(await page.locator('.section-nav a[href="#masters"]').textContent(), '研究生');
+    for (const member of members.filter((member) => member.id !== profile.id)) {
+      const item = page.locator(`#member-${member.id}`);
+      assert.equal(await item.locator('.member-field').count(), member.id === graduate.id ? 1 : 0);
+      assert.equal(await item.locator('.research-links a').count(), 1);
+    }
     assert((await card.locator('img').getAttribute('src')).endsWith('member-placeholder.svg'));
     const imageBox = await card.locator('img').boundingBox();
     const contentBox = await card.locator('.member-card-content').boundingBox();
@@ -614,18 +879,24 @@ for (const topic of research) {
     }
     assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
     const alumniCard = page.locator('#member-yan-jia-yuan');
-    assert((await alumniCard.textContent()).includes('碩士畢業生'));
-    assert((await alumniCard.textContent()).includes('自主割草機器人導航框架'));
+    assert.equal(await alumniCard.locator('.member-meta').textContent(), '碩士畢業生');
+    assert.deepEqual(await alumniCard.locator('.technology-tags li').allTextContents(),
+      ['自主移動機器人', '空拍輔助建圖', '語義分割', '自主導航', '覆蓋路徑規劃']);
+    assert(!(await alumniCard.textContent()).includes(graduate.researchTopic));
     assert((await alumniCard.locator('xpath=ancestor::details').locator('summary').textContent()).includes('2026 年畢業'));
     assert(!(await alumniCard.textContent()).includes(participations.find((row) => row.memberId === graduate.id).thesis.title));
-    for (const group of groups.filter((group) => group.status === 'current')) {
-      const groupCard = page.locator(`#group-${group.id}`);
-      for (const id of group.researchIds || []) {
-        const topic = research.find((topic) => topic.id === id);
-        assert((await groupCard.textContent()).includes(topic.title));
-        if (topic.summary) assert((await groupCard.textContent()).includes(topic.summary));
+    assert.equal(await page.locator('#groups').isVisible(), false);
+    assert.equal(await page.locator('#groups article, a[href="#groups"], .sample-notice').count(), 0);
+    assert(!(await page.locator('main').textContent()).includes('範例資料'));
+    for (const member of members.filter((member) => member.status === 'current')) {
+      const item = page.locator(`#member-${member.id}`);
+      assert(await item.isVisible());
+      assert.equal(await item.locator('.member-meta').textContent(), `研究生 · ${member.admissionYear} 學年度入學`);
+      assert.equal(await item.locator('.research-links a').count(), 1);
+      if (!member.degree) {
+        assert.equal(await item.locator('.member-meta').textContent(), `研究生 · ${member.admissionYear} 學年度入學`);
+        assert.equal(await item.locator('.member-fields').count(), 0);
       }
-      assert.equal(await groupCard.locator('.badge').count(), group.example ? 1 : 0);
     }
     if ([1440, 390].includes(width)) {
       await page.locator('main img').evaluateAll((images) => images.forEach((image) => image.loading = 'eager'));
@@ -640,6 +911,7 @@ for (const topic of research) {
     { id: 'optional-phd', name: '選填資料測試', degree: 'phd', status: 'current' },
     { id: 'unknown-year-a', name: '年度測試甲', degree: 'master', status: 'alumni' },
     { id: 'unknown-year-b', name: '年度測試乙', degree: 'master', status: 'alumni' },
+    { id: 'phd-graduate', name: '博士畢業測試', degree: 'phd', status: 'alumni', graduationYear: 2025, identity: '舊身分' },
   ] }));
   await page.route('**/data/groups.json', (route) => route.fulfill({ json: [
     ...groups, { id: 'optional-group', name: '精簡團隊測試', status: 'current', image: 'image/missing.png' },
@@ -647,8 +919,10 @@ for (const topic of research) {
   await open('members.html');
   const sparse = page.locator('#member-optional-phd');
   assert(await sparse.isVisible());
-  assert.equal(await sparse.locator('.member-meta').textContent(), '博士研究生');
+  assert.equal(await sparse.locator('.member-meta').textContent(), '研究生');
   assert.equal(await sparse.locator('.member-fields, .research-links').count(), 0);
+  assert.equal(await page.locator('#member-phd-graduate .member-meta').textContent(), '博士畢業生');
+  assert.equal(await page.locator('#member-unknown-year-a .member-meta').textContent(), '碩士畢業生');
   const lastYear = page.locator('.alumni-year').last();
   assert.equal(await lastYear.locator('summary').textContent(), '年度待補 · 2 位');
   assert.equal(await lastYear.locator('article').count(), 2);
@@ -657,15 +931,46 @@ for (const topic of research) {
   assert(!(await lastYear.evaluate((details) => details.open)));
   await page.keyboard.press('Enter');
   assert(await lastYear.evaluate((details) => details.open));
+  assert.equal(await page.locator('#groups article').count(), 0);
+  // Exercise retained team rendering explicitly, without enabling it publicly.
+  await page.evaluate(async () => {
+    const { loadDirectory } = await import('./js/data-service.js');
+    const { groupCard } = await import('./js/directory-render.js');
+    const model = await loadDirectory();
+    const container = document.querySelector('[data-section="groups"]');
+    container.replaceChildren(...model.groups.map((group) => groupCard(group, model)));
+    document.getElementById('groups').hidden = false;
+  });
   const sparseGroup = page.locator('#group-optional-group');
   await sparseGroup.scrollIntoViewIfNeeded();
   await page.waitForFunction(() => !document.querySelector('#group-optional-group img'));
   assert.equal(await sparseGroup.locator('.member-fields, .research-links').count(), 0);
   assert(!(await sparseGroup.getAttribute('class')).includes('member-card-with-image'));
   assert.equal(await sparseGroup.textContent(), '精簡團隊測試');
+  for (const group of groups) {
+    const item = page.locator(`#group-${group.id}`);
+    assert.equal(await item.locator('.badge').count(), group.example ? 1 : 0);
+    for (const id of group.researchIds || []) {
+      const topic = research.find((topic) => topic.id === id);
+      assert((await item.textContent()).includes(topic.title));
+      assert((await item.textContent()).includes(topic.summary));
+    }
+  }
   assert(!(await page.locator('main').textContent()).includes('undefined'));
   await page.unroute('**/data/members.json');
   await page.unroute('**/data/groups.json');
+  // Topic data remains valid but is never rendered for any member or cohort.
+  await page.route('**/data/members.json', (route) => route.fulfill({ json: [
+    ...sourceMembers.map((member) => ({ ...member, researchTopic: '不公開的研究主題測試' })),
+    { id: 'topic-rule-test', name: '共用規則測試', status: 'current', researchTopic: '不公開的研究主題測試', researchFocus: '確認研究方向測試' },
+  ] }));
+  await open('members.html');
+  assert(!(await page.locator('main').textContent()).includes('不公開的研究主題測試'));
+  assert.equal(await page.getByText('研究主題', { exact: true }).count(), 0);
+  const optionalIdentity = page.locator('#member-topic-rule-test');
+  assert.equal(await optionalIdentity.locator('.member-meta').textContent(), '研究生');
+  assert.deepEqual(await optionalIdentity.locator('dd').allTextContents(), ['確認研究方向測試']);
+  await page.unroute('**/data/members.json');
   // Co-advisors are reused from participation records, never guessed from advisor.
   await page.route('**/data/participations.json', (route) => {
     const rows = structuredClone(participations);
@@ -679,7 +984,7 @@ for (const topic of research) {
   assert(concise.includes('共同指導教授') && concise.includes('共同指導測試教授'));
   assert(!concise.includes('不顯示的一般指導教授') && !concise.includes('不得重複顯示的完整論文'));
   await page.unroute('**/data/participations.json');
-  for (const field of ['researchTopic', 'researchFocus']) {
+  for (const field of ['researchTopic', 'researchFocus', 'identity']) {
     await page.route('**/data/members.json', (route) => {
       const rows = structuredClone(sourceMembers); rows[0][field] = 42;
       return route.fulfill({ json: rows });
@@ -688,6 +993,75 @@ for (const topic of research) {
     await page.waitForFunction(() => document.querySelector('#directory-status button'));
     await page.unroute('**/data/members.json');
   }
+  // Every confirmed project has the intended people and working reciprocal links.
+  const officialProjects = [
+    ['thinning-weeding-robot', ['陳竑鈞', '陳杰逸']],
+    ['marine-trash-collection-vessel', ['蔡宸祐', '朱溢恩', '林奕呈']],
+    ['mowing-robot', ['林睿鈞']],
+  ];
+  for (const [id, names] of officialProjects) {
+    await open(`areas/research.html?id=${id}`);
+    const links = page.locator('[data-people="current"] a[data-member-link]');
+    assert.deepEqual(await links.allTextContents(), names);
+    const destinations = await links.evaluateAll((items) => items.map((link) => link.href));
+    for (const destination of destinations) {
+      await page.goto(destination);
+      const target = new URL(destination).hash;
+      await page.locator(target).waitFor({ state: 'visible' });
+      await page.locator(`${target} .research-links a`).click();
+      await page.waitForURL(new URL(`areas/research.html?id=${id}`, base).href);
+    }
+  }
+  // The graduate has only the newly confirmed identity, year and project link.
+  const newGraduate = members.find((member) => member.id === 'lin-zhi-en');
+  assert.equal(sourceMembers.filter((member) => member.name === '林志恩').length, 1);
+  assert.equal(newGraduate.status, 'alumni');
+  assert.equal(newGraduate.identity, '應屆畢業成員');
+  assert.equal(newGraduate.graduationYear, 2026);
+  for (const field of ['degree', 'photo', 'researchFocus', 'researchTopic', 'introduction'])
+    assert.equal(newGraduate[field], undefined);
+  assert(!participations.some((row) => row.memberId === newGraduate.id));
+  for (const width of [1440, 1024, 768, 390, 320]) {
+    await page.setViewportSize({ width, height: 900 });
+    await open('members.html');
+    const card = page.locator('#member-lin-zhi-en');
+    await card.waitFor({ state: 'visible' });
+    assert.equal(await card.locator('h3').textContent(), '林志恩');
+    assert.equal(await card.locator('.member-meta').textContent(), '應屆畢業成員');
+    assert.equal(await card.locator('.member-fields, img').count(), 0);
+    assert.equal(await page.locator('#masters #member-lin-zhi-en').count(), 0);
+    assert((await card.locator('xpath=ancestor::details').locator('summary').textContent()).includes('2026 年畢業'));
+    await card.locator('.research-links a').click();
+    await page.waitForURL(new URL('areas/research.html?id=thinning-weeding-robot', base).href);
+    await page.waitForFunction(() => document.querySelector('[data-people="alumni"]'));
+    const history = page.locator('[data-people="alumni"]');
+    assert.equal(await history.locator('a[data-member-link]').textContent(), '林志恩');
+    assert((await history.textContent()).includes('應屆畢業成員'));
+    assert((await history.textContent()).includes('2026 年畢業'));
+    assert.equal(await history.locator('img, .research-thesis, .thesis-keywords').count(), 0);
+    assert(!(await history.textContent()).includes('碩士'));
+    assert(!(await history.textContent()).includes('研究方向'));
+    assert(!(await history.textContent()).includes('參與角色'));
+    assert(!(await history.textContent()).includes('指導教授'));
+    assert.deepEqual(await page.locator('[data-people="current"] a[data-member-link]').allTextContents(), ['陳竑鈞', '陳杰逸']);
+    await history.locator('a[data-member-link]').click();
+    await page.waitForURL(new URL('members.html#member-lin-zhi-en', base).href);
+    await card.waitFor({ state: 'visible' });
+    assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+  }
+  // Defensive filtering keeps future sample data out of the public member page.
+  await page.route('**/data/members.json', (route) => route.fulfill({ json: [
+    ...sourceMembers.map((member) => member.id === 'lin-ruei-jiun'
+      ? { ...member, researchIds: ['lgp'] } : member),
+    { id: 'hidden-example-member', name: '不得顯示範例', status: 'current', example: true },
+    { id: 'hidden-example-alumnus', name: '不得顯示歷屆範例', status: 'alumni', example: true },
+  ] }));
+  await open('members.html');
+  assert.equal(await page.locator('#masters article').count(), 6);
+  assert.equal(await page.locator('#member-hidden-example-member, #member-hidden-example-alumnus').count(), 0);
+  assert.equal(await page.locator('#member-lin-ruei-jiun .research-links a').count(), 1);
+  assert.equal(await page.locator('#groups').isVisible(), false);
+  await page.unroute('**/data/members.json');
   // Confirmed cross-cohort research content, with no fabricated photos or URLs.
   const mowing = research.find((topic) => topic.id === 'mowing-robot');
   const currentMember = members.find((member) => member.id === 'lin-ruei-jiun');
@@ -919,11 +1293,11 @@ for (const topic of research) {
   );
   await page.waitForFunction(() =>
     document
-      .querySelector('#member-master-1 img')
+      .querySelector('#member-lin-ruei-jiun img')
       .src.endsWith('member-placeholder.svg'),
   );
   assert(
-    (await page.locator('#member-master-1').textContent()).includes(
+    (await page.locator('#member-lin-ruei-jiun').textContent()).includes(
       '研究資料待補',
     ),
   );
@@ -933,7 +1307,7 @@ for (const topic of research) {
   );
   await page.locator('.research-detail-content').scrollIntoViewIfNeeded();
   await page.waitForFunction(
-    () => !document.querySelector('.research-detail-content img'),
+    () => !document.querySelector('.research-detail-content .research-figure img'),
   );
   await page.unroute('**/data/members.json');
   await page.unroute('**/data/research.json');
@@ -975,7 +1349,7 @@ for (const topic of research) {
       topic.title,
     );
     assert.equal(page.url(), new URL(detailFile(topic), base).href);
-    assert.equal(await page.locator('.research-detail-section h2').count(), 3 + ((topic.gallery || []).some((image) => image.src !== topic.image) ? 1 : 0));
+    assert.equal(await page.locator('.research-detail-section h2').count(), detailSectionCount(topic));
     await page.locator('main a').filter({ hasText: '返回研究領域' }).click();
     await page.waitForFunction(
       (id) => document.getElementById(`research-${id}`),
@@ -1024,7 +1398,7 @@ for (const topic of research) {
     await open(file);
     assert.equal(
       await page.locator('.empty-state').count(),
-      file === 'members.html' ? 3 : 2,
+      2,
     );
   }
   assert.deepEqual(errors, []);

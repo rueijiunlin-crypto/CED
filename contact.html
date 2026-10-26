@@ -28,17 +28,37 @@
   <body>
     <div data-include="partials/header.html"></div>
 
-    <main class="wrap hero">
-      <div class="section-title">
-        <h2>聯絡我們</h2>
-      </div>
-      <div class="card">
-        <p>Email: jcyu@nkust.edu.tw</p>
-      </div>
+    <main class="wrap hero contact-page">
+      <h1>聯絡我們</h1>
+      <section class="card" aria-labelledby="contact-info-title">
+        <h2 id="contact-info-title">聯絡資訊</h2>
+        <p>國立高雄科技大學 第一校區</p>
+        <p>同步工程設計實驗室 (CED Lab)</p>
+        <p>實驗室分機：32267</p>
+        <p>Email: <a href="mailto:jcyu@nkust.edu.tw">jcyu@nkust.edu.tw</a></p>
+      </section>
+      <section class="card" id="location" aria-labelledby="location-title">
+        <h2 id="location-title">實驗室位置</h2>
+        <p>國立高雄科技大學 第一校區 工學院</p>
+        <p>實驗室位置：工學院 F360</p>
+        <p>余志成教授研究室位置：工學院 F308</p>
+        <figure class="campus-map">
+          <a href="image/campus/first-campus-map.jpg" aria-label="開啟第一校區校園地圖原始大圖">
+            <img src="image/campus/first-campus-map.jpg"
+              width="3579" height="2552" loading="lazy"
+              alt="國立高雄科技大學第一校區校園地圖，工學院位於圖中右上方、大學路校門口附近" />
+          </a>
+          <figcaption>
+            同步工程設計實驗室位於國立高雄科技大學第一校區工學院。
+            工學院位於圖中右上方、大學路校門口附近。點擊地圖可放大檢視。
+          </figcaption>
+        </figure>
+      </section>
     </main>
 
     <div data-include="partials/footer.html"></div>
     <script src="js/include.js"></script>
     <script src="js/script.js"></script>
+    <script type="module" src="js/contact.js"></script>
   </body>
 </html>

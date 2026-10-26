@@ -17,12 +17,15 @@
 * {
   box-sizing: border-box;
 }
-html,
-body {
-  height: 100%;
+html {
+  min-height: 100%;
 }
 
 body {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
   margin: 0;
   font-family: 'Noto Sans TC', ui-sans-serif, system-ui;
   color: var(--ink);
@@ -263,6 +266,7 @@ table {
 }
 th,
 td {
+  overflow-wrap: anywhere;
   padding: 10px 12px;
   border-bottom: 1px solid rgba(2, 8, 23, 0.08);
   text-align: left;
@@ -324,4 +328,158 @@ footer {
   .grid.cols-2 {
     grid-template-columns: 1fr;
   }
+}
+
+/* Contact sections share the existing card theme. */
+.contact-page {
+  padding: 32px 20px;
+}
+.contact-page h1 {
+  margin: 0 0 20px;
+}
+.contact-page h2 {
+  margin-top: 0;
+}
+.contact-page .card + .card {
+  margin-top: 20px;
+}
+.contact-page p,
+.contact-page a {
+  overflow-wrap: anywhere;
+}
+.contact-page #location {
+  scroll-margin-top: 100px;
+}
+
+/* The main grows on short pages; long pages keep the footer in normal flow. */
+body > main {
+  flex: 1 0 auto;
+  width: 100%;
+  margin: 0 auto;
+}
+body > header,
+body > footer {
+  flex: 0 0 auto;
+}
+
+.contact-page .campus-map {
+  margin: 24px 0;
+}
+.contact-page .campus-map img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 10px;
+}
+.contact-page .campus-map figcaption {
+  margin-top: 12px;
+  color: var(--muted);
+  font-size: 14px;
+}
+.contact-page .campus-map a:focus-visible {
+  display: block;
+  outline: 3px solid var(--brand-600);
+  outline-offset: 4px;
+}
+
+/* Shared image viewer for research figures and the campus map. */
+.research-image-open {
+  overflow: hidden;
+}
+
+.research-image-viewer {
+  box-sizing: border-box;
+  width: min(1100px, calc(100% - 24px));
+  max-width: calc(100% - 24px);
+  max-height: calc(100dvh - 24px);
+  padding: 20px;
+  border: 1px solid #cbd5e1;
+  border-radius: var(--radius);
+  color: var(--ink);
+  background: var(--bg);
+  font: inherit;
+  overflow: auto;
+}
+
+.research-image-viewer::backdrop {
+  background: rgba(15, 23, 42, 0.8);
+}
+
+.research-image-viewer figure {
+  margin: 16px 0 0;
+}
+
+.research-image-viewer img {
+  display: block;
+  width: 100%;
+  max-height: 75dvh;
+  object-fit: contain;
+}
+
+.research-image-viewer figcaption {
+  margin-top: 12px;
+  overflow-wrap: anywhere;
+}
+
+.research-image-close {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 8px 16px;
+  border: 1px solid var(--brand-600);
+  border-radius: 8px;
+  color: var(--brand-700);
+  background: var(--brand-50);
+  font: inherit;
+  cursor: pointer;
+}
+
+
+.contact-page .campus-map a {
+  display: block;
+  cursor: zoom-in;
+}
+
+.image-zoom-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.image-zoom-controls button {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 1px solid var(--brand-600);
+  border-radius: 8px;
+  background: var(--brand-50);
+  color: var(--brand-700);
+  font: inherit;
+  cursor: pointer;
+}
+.image-zoom-controls button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.image-zoom-level {
+  min-width: 48px;
+  text-align: center;
+}
+.image-zoom-hint {
+  color: var(--muted);
+  font-size: 14px;
+}
+.image-zoom-viewport {
+  height: min(65dvh, 650px);
+  overflow: auto;
+  overscroll-behavior: contain;
+  border: 1px solid #cbd5e1;
+  background: var(--brand-50);
+}
+.image-zoom-stage {
+  display: grid;
+  place-items: center;
+}
+.research-image-viewer .image-zoom-image {
+  max-width: none;
+  max-height: none;
 }

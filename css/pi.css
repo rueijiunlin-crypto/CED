@@ -1,0 +1,104 @@
+/* Faculty profile follows the shared lab cards, type and content width. */
+.pi-page {
+  padding: 32px 20px;
+  overflow-wrap: anywhere;
+}
+.pi-page h1 {
+  margin: 0 0 24px;
+  font-size: clamp(28px, 4vw, 40px);
+}
+.pi-page h2 {
+  margin: 0 0 16px;
+  font-size: clamp(22px, 2.4vw, 30px);
+}
+.pi-profile {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  align-items: center;
+  gap: 32px;
+  padding: 28px;
+}
+.pi-profile > img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 12px;
+}
+.pi-profile h2 {
+  margin-bottom: 4px;
+}
+.pi-english {
+  margin-top: 0;
+  color: var(--muted);
+}
+.pi-position {
+  color: var(--brand-700);
+  font-weight: 700;
+}
+.pi-section {
+  margin-top: 40px;
+}
+.pi-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+.pi-tags li {
+  background: var(--brand-50);
+  color: var(--brand-700);
+  padding: 8px 14px;
+  border-radius: 8px;
+}
+.pi-list {
+  margin: 0;
+  padding: 20px 24px 20px 44px;
+}
+.pi-list li + li,
+.pi-sources li + li {
+  margin-top: 12px;
+}
+.pi-contact {
+  margin: 0;
+}
+.pi-contact > div {
+  display: grid;
+  grid-template-columns: 190px minmax(0, 1fr);
+  gap: 12px;
+  padding: 10px 0;
+}
+.pi-contact dt {
+  color: var(--muted);
+}
+.pi-contact dd {
+  margin: 0;
+}
+.pi-sources {
+  border-top: 1px solid #cbd5e1;
+  margin: 20px 0 0;
+  padding: 20px 0 0 20px;
+}
+.pi-page a {
+  color: var(--brand-700);
+  text-underline-offset: 4px;
+}
+.pi-page a:focus-visible {
+  outline: 3px solid var(--brand-600);
+  outline-offset: 4px;
+}
+@media (max-width: 600px) {
+  .pi-profile {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 20px;
+    gap: 20px;
+  }
+  .pi-profile > img {
+    width: min(220px, 100%);
+  }
+  .pi-contact > div {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 4px;
+  }
+}
