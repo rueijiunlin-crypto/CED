@@ -24,52 +24,85 @@
       rel="stylesheet"
       href="css/style.css"
     />
+    <link rel="stylesheet" href="css/pi.css" />
   </head>
   <body>
     <!-- 匯入導覽列 -->
     <div data-include="partials/header.html"></div>
 
-    <main class="wrap hero">
-      <div class="section-title">
-        <h2>指導教授</h2>
-      </div>
-
-      <div class="grid cols-2">
-        <div class="card">
-          <h3>余志成 教授</h3>
-          <p class="muted">國立高雄科技大學 機電工程系</p>
-          <p>
-            <strong>學歷：</strong><br />
-            （範例）台灣大學 機械工程博士<br />
-            （範例）美國 XX 大學 訪問學者
-          </p>
-          <p>
-            <strong>研究專長：</strong><br />
-            （範例）同步工程方法學<br />
-            （範例）導光板設計與製造<br />
-            （範例）鐵電薄膜微感測器<br />
-            （範例）穩健最佳化<br />
-            （範例）智慧服務型機器人
-          </p>
-          <p>
-            <strong>榮譽：</strong><br />
-            （範例）教育部師鐸獎<br />
-            （範例）高科大傑出教學獎
-          </p>
-          <p>
-            <strong>Email：</strong>
-            <a href="mailto:jcyu@nkust.edu.tw">jcyu@nkust.edu.tw</a>
-          </p>
+    <main class="wrap hero pi-page">
+      <h1>指導教授</h1>
+      <section class="card pi-profile" aria-labelledby="pi-name">
+        <img src="image/index/教授照片.jpg" width="266" height="400" alt="余志成教授" />
+        <div>
+          <h2 id="pi-name">余志成</h2>
+          <p class="pi-english" lang="en">Jyh-Cheng Jason Yu</p>
+          <p class="pi-position">特聘教授</p>
+          <p class="muted">國立高雄科技大學機電工程系</p>
+          <p>余志成教授現任國立高雄科技大學機電工程系特聘教授，研究領域涵蓋智慧服務型機器人、同步工程設計、品質最佳化、導光板設計與微感測器技術。長期投入工程設計方法、智慧機電系統與跨領域技術整合，並指導同步工程設計實驗室進行自主機器人及相關應用研究。</p>
         </div>
+      </section>
 
+      <section class="pi-section" aria-labelledby="pi-interests-title">
+        <h2 id="pi-interests-title">研究專長</h2>
+        <ul class="pi-tags">
+          <li>智慧服務型機器人</li>
+          <li>品質最佳化設計</li>
+          <li>導光板設計與應用</li>
+          <li>同步工程設計</li>
+          <li>微感測器設計與製造</li>
+        </ul>
+      </section>
+
+      <section class="pi-section" aria-labelledby="pi-education-title">
+        <h2 id="pi-education-title">學歷</h2>
+        <ol class="card pi-list" id="pi-education">
+          <li>美國俄亥俄州立大學機械工程博士</li>
+          <li>美國俄亥俄州立大學機械工程碩士</li>
+          <li>國立臺灣大學機械工程學士</li>
+        </ol>
+      </section>
+
+      <section class="pi-section" aria-labelledby="pi-experience-title">
+        <h2 id="pi-experience-title">重要經歷</h2>
+        <ul class="card pi-list" id="pi-experience">
+          <li>國立高雄科技大學工學院代理院長（2022–2023）</li>
+          <li>國立高雄科技大學工學院副院長（2019–2022）</li>
+          <li>美國史丹佛大學機械工程系客座教授（2016）</li>
+          <li>國立高雄第一科技大學研究發展處處長（2014–2016）</li>
+          <li>國立高雄第一科技大學機械與自動化工程系系主任（2011–2014）</li>
+          <li>國立臺灣科技大學機械工程系副教授</li>
+          <li>工業技術研究院機械工業研究所研究員</li>
+        </ul>
+      </section>
+
+      <section class="pi-section" aria-labelledby="pi-honors-title">
+        <h2 id="pi-honors-title">教學榮譽</h2>
+        <ul class="card pi-list" id="pi-honors">
+          <li>2019 年中華工程教育學會教學傑出獎</li>
+          <li>國立高雄科技大學 109 年度特殊優秀教學人才卓越教學獎</li>
+          <li>2020 年田口品質工程法線上課程全國線上推廣教育最佳專業教師獎</li>
+        </ul>
+      </section>
+
+      <section class="pi-section" aria-labelledby="pi-contact-title">
+        <h2 id="pi-contact-title">聯絡資訊與官方資料連結</h2>
         <div class="card">
-          <img
-            src="https://dummyimage.com/800x600/e2e8f0/64748b&text=PI+Photo"
-            alt="PI photo"
-            style="width: 100%; border-radius: 12px"
-          />
+          <dl class="pi-contact">
+            <div><dt>電子郵件</dt><dd><a href="mailto:jcyu@nkust.edu.tw">jcyu@nkust.edu.tw</a></dd></div>
+            <div><dt>教授研究室</dt><dd>第一校區工學院 F308</dd></div>
+            <div><dt>教授分機</dt><dd><a href="tel:+88676011000;ext=32228">07-6011000 #32228</a></dd></div>
+            <div><dt>同步工程設計實驗室</dt><dd>第一校區工學院 F360</dd></div>
+            <div><dt>實驗室分機</dt><dd><a href="tel:+88676011000;ext=32267">07-6011000 #32267</a></dd></div>
+          </dl>
+          <ul class="pi-sources">
+            <li><a href="https://mae.nkust.edu.tw/p/426-1136-5.php">機電工程系官方師資介紹</a></li>
+            <li><a href="https://mae.nkust.edu.tw/p/426-1136-63.php?Lang=en">系所英文師資資料</a></li>
+            <li><a href="https://www2.nkust.edu.tw/~jcyu/others/PR.html">教授公開履歷</a></li>
+            <li><a href="https://excellentteacher.moe.edu.tw/2021/teacher3_69.htm">教育部公開榮譽紀錄</a></li>
+          </ul>
         </div>
-      </div>
+      </section>
     </main>
 
     <!-- 匯入頁腳 -->

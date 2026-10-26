@@ -101,6 +101,44 @@ for (const topic of research) {
         () => document.querySelector('#directory-status')?.textContent === '',
       );
   }
+  const piEducation = ['美國俄亥俄州立大學機械工程博士', '美國俄亥俄州立大學機械工程碩士', '國立臺灣大學機械工程學士'];
+  const piInterests = ['智慧服務型機器人', '品質最佳化設計', '導光板設計與應用', '同步工程設計', '微感測器設計與製造'];
+  const piExperience = ['國立高雄科技大學工學院代理院長（2022–2023）', '國立高雄科技大學工學院副院長（2019–2022）', '美國史丹佛大學機械工程系客座教授（2016）', '國立高雄第一科技大學研究發展處處長（2014–2016）', '國立高雄第一科技大學機械與自動化工程系系主任（2011–2014）', '國立臺灣科技大學機械工程系副教授', '工業技術研究院機械工業研究所研究員'];
+  const piHonors = ['2019 年中華工程教育學會教學傑出獎', '國立高雄科技大學 109 年度特殊優秀教學人才卓越教學獎', '2020 年田口品質工程法線上課程全國線上推廣教育最佳專業教師獎'];
+  for (const width of [1440, 1024, 768, 390, 320]) {
+    await page.setViewportSize({ width, height: 1000 });
+    await open('pi.html');
+    assert.equal(await page.locator('#pi-name').textContent(), '余志成');
+    assert.equal(await page.locator('.pi-english').textContent(), 'Jyh-Cheng Jason Yu');
+    assert.equal(await page.locator('.pi-position').textContent(), '特聘教授');
+    assert.deepEqual(await page.locator('.pi-tags li').allTextContents(), piInterests);
+    assert.deepEqual(await page.locator('#pi-education li').allTextContents(), piEducation);
+    assert.deepEqual(await page.locator('#pi-experience li').allTextContents(), piExperience);
+    assert.deepEqual(await page.locator('#pi-honors li').allTextContents(), piHonors);
+    assert.deepEqual(await page.locator('.pi-section > h2').allTextContents(), ['研究專長', '學歷', '重要經歷', '教學榮譽', '聯絡資訊與官方資料連結']);
+    assert.deepEqual(await page.locator('.pi-contact dd').allTextContents(), ['jcyu@nkust.edu.tw', '第一校區工學院 F308', '07-6011000 #32228', '第一校區工學院 F360', '07-6011000 #32267']);
+    assert.equal(await page.locator('main a[href="mailto:jcyu@nkust.edu.tw"]').count(), 1);
+    assert.equal(await page.locator('a[href="tel:+88676011000;ext=32228"]').textContent(), '07-6011000 #32228');
+    assert.equal(await page.locator('a[href="tel:+88676011000;ext=32267"]').textContent(), '07-6011000 #32267');
+    const text = await page.locator('main').textContent();
+    for (const removed of ['範例', 'XX 大學', '台灣大學 機械工程博士']) assert(!text.includes(removed));
+    assert.equal(await page.locator('main img[src^="http"]').count(), 0);
+    assert.equal(await page.locator('.pi-profile img').getAttribute('src'), 'image/index/教授照片.jpg');
+    await page.waitForFunction(() => document.querySelector('.pi-profile img')?.naturalWidth > 0);
+    assert(await page.locator('.pi-profile img').evaluate((img) => Math.abs(img.width / img.height - img.naturalWidth / img.naturalHeight) < 0.01));
+    const image = await page.locator('.pi-profile img').boundingBox();
+    const bio = await page.locator('.pi-profile > div').boundingBox();
+    if (width > 600) assert(bio.x > image.x + image.width);
+    else assert(bio.y >= image.y + image.height);
+    assert.deepEqual(await page.locator('.pi-sources a').evaluateAll((links) => links.map((a) => a.href)), [
+      'https://mae.nkust.edu.tw/p/426-1136-5.php',
+      'https://mae.nkust.edu.tw/p/426-1136-63.php?Lang=en',
+      'https://www2.nkust.edu.tw/~jcyu/others/PR.html',
+      'https://excellentteacher.moe.edu.tw/2021/teacher3_69.htm',
+    ]);
+    assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+    if ([1440, 390].includes(width)) await page.screenshot({ path: path.join(screenshotDir, `ced-pi-${width === 1440 ? 'desktop' : 'mobile'}.png`), fullPage: true });
+  }
   // Home uses only the five confirmed local images and existing detail routes.
   const homeProjects = [
     ['mowing-robot', '割草機器人', '割草機.png'],
@@ -121,7 +159,7 @@ for (const topic of research) {
     for (const removed of ['範例', '示範', '歷年研究模板', '期刊論文', '2025/09/01', '研究生徵才'])
       assert(!text.includes(removed));
     assert.equal(await page.locator('.home-news').textContent().then((text) => text.trim()), '目前尚無最新消息。');
-    assert.equal(await page.locator('.home-professor h3').textContent(), '余志成教授');
+    assert.equal(await page.locator('.home-professor h3').textContent(), '余志成特聘教授');
     assert((await page.locator('.home-professor').textContent()).includes('國立高雄科技大學 機電工程系'));
     assert.equal(await page.locator('.home-professor a').getAttribute('href'), 'pi.html');
     for (const selector of ['.home-hero img', '.home-professor > img']) {
