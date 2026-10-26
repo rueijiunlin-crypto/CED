@@ -167,6 +167,34 @@ for (const topic of research) {
         });
     }
   }
+  // Ordering comes from ROC academic year and explicit within-year order.
+  const expectedNames = ['林奕呈', '陳杰逸', '朱溢恩', '林睿鈞', '陳竑鈞', '蔡宸祐'];
+  assert.deepEqual(expectedNames.map((name) => sourceMembers.find((m) => m.name === name).admissionYear),
+    [113, 114, 114, 115, 115, 115]);
+  await page.route('**/data/members.json', (route) => route.fulfill({ json: [
+    { id: 'unknown-admission', name: '未設定學年度', status: 'current' },
+    ...[...sourceMembers].reverse(),
+  ] }));
+  await open('members.html');
+  assert.deepEqual(await page.locator('#masters h3').allTextContents(),
+    [...expectedNames, '未設定學年度']);
+  await page.unroute('**/data/members.json');
+  for (const width of [1440, 390]) {
+    await page.setViewportSize({ width, height: 900 });
+    await open('members.html');
+    assert.deepEqual(await page.locator('#masters h3').allTextContents(), expectedNames);
+    assert.equal(await page.getByRole('heading', { name: '研究成員', exact: true }).count(), 1);
+    const text = await page.locator('main').textContent();
+    for (const removed of ['研究成員與歷屆畢業成員的研究連結。', '以個人為起點，探索彼此連結的研究方向。'])
+      assert(!text.includes(removed));
+    assert.equal(await page.locator('#masters').getAttribute('aria-label'), '研究成員');
+    for (const id of ['alumni', 'masters']) {
+      await page.locator(`.section-nav a[href="#${id}"]`).click();
+      await page.waitForFunction((id) => location.hash === '#' + id, id);
+      assert(await page.locator('#' + id).isVisible());
+      assert(await page.locator('#' + id).evaluate((el) => el.getBoundingClientRect().top >= 60));
+    }
+  }
   // Resolve every generated cross-page link and verify its actual destination card.
   for (const file of ['members.html', 'areas.html']) {
     await open(file);
@@ -596,7 +624,7 @@ for (const topic of research) {
     await page.setViewportSize({ width, height: 900 });
     await open('members.html');
     assert.deepEqual(await page.locator('main > section:visible > h2').allTextContents(),
-      ['研究成員', '歷屆畢業成員']);
+      ['歷屆畢業成員']);
     const card = page.locator('#member-lin-ruei-jiun');
     assert.equal(await card.locator('h3').textContent(), '林睿鈞');
     assert.equal(await card.locator('.member-meta').textContent(), '碩士研究生');

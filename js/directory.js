@@ -47,7 +47,15 @@ try {
       section('masters'),
       model.members.filter(
         (m) => m.status === 'current' && !m.example,
-      ),
+      ).sort((a, b) => {
+        // ROC admission academic years are numeric labels, not Gregorian dates.
+        const year = (m) => Number.isInteger(m.admissionYear) && m.admissionYear > 0
+          ? m.admissionYear : Infinity;
+        const order = (m) => Number.isInteger(m.admissionOrder)
+          ? m.admissionOrder : Infinity;
+        return (year(a) - year(b)) || (order(a) - order(b)) ||
+          a.id.localeCompare(b.id);
+      }),
       (m) => memberCard(m, model),
       'member-grid',
     );

@@ -7,7 +7,9 @@
     "example": false,
     "introduction": "以視覺語言模型與無人機視覺感知為研究核心，探討空拍影像的即時傳輸、場景理解及目標辨識技術，並結合視覺目標定位與影像分割方法，發展智慧化環境感知能力。未來將探索相關技術於空拍機與地面機器人協作系統中的應用。",
     "researchTopic": "視覺語言模型與空地協作自主系統",
-    "researchFocus": "視覺語言模型、無人機視覺感知、空地協作"
+    "researchFocus": "視覺語言模型、無人機視覺感知、空地協作",
+    "admissionYear": 115,
+    "admissionOrder": 1
   },
   {
     "id": "yan-jia-yuan",
@@ -25,7 +27,9 @@
     "researchIds": [
       "thinning-weeding-robot"
     ],
-    "example": false
+    "example": false,
+    "admissionYear": 115,
+    "admissionOrder": 2
   },
   {
     "id": "chen-jie-yi",
@@ -34,7 +38,9 @@
     "researchIds": [
       "thinning-weeding-robot"
     ],
-    "example": false
+    "example": false,
+    "admissionYear": 114,
+    "admissionOrder": 1
   },
   {
     "id": "cai-chen-you",
@@ -43,7 +49,9 @@
     "researchIds": [
       "marine-trash-collection-vessel"
     ],
-    "example": false
+    "example": false,
+    "admissionYear": 115,
+    "admissionOrder": 3
   },
   {
     "id": "zhu-yi-en",
@@ -52,7 +60,9 @@
     "researchIds": [
       "marine-trash-collection-vessel"
     ],
-    "example": false
+    "example": false,
+    "admissionYear": 114,
+    "admissionOrder": 2
   },
   {
     "id": "lin-yi-cheng",
@@ -61,7 +71,9 @@
     "researchIds": [
       "marine-trash-collection-vessel"
     ],
-    "example": false
+    "example": false,
+    "admissionYear": 113,
+    "admissionOrder": 1
   },
   {
     "id": "lin-zhi-en",
