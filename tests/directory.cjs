@@ -174,12 +174,27 @@ for (const topic of research) {
         assert((await map.getAttribute('alt')).includes('工學院'));
         assert.equal(await page.locator('.campus-map a').getAttribute('href'), 'image/campus/first-campus-map.jpg');
         assert((await page.locator('.campus-map figcaption').textContent()).includes('工學院'));
-        await page.locator('.campus-map a').click();
-        await page.waitForURL('**/image/campus/first-campus-map.jpg');
-        assert((await page.request.get(page.url())).ok());
-        await open('contact.html');
+        const trigger = page.locator('.campus-map a');
+        const contactUrl = page.url();
+        for (const method of ['escape', 'button', 'backdrop']) {
+          await trigger.click();
+          const viewer = page.getByRole('dialog', { name: '校園地圖放大檢視' });
+          await viewer.waitFor({ state: 'visible' });
+          assert.equal(page.url(), contactUrl);
+          assert((await viewer.locator('img').getAttribute('src')).endsWith('image/campus/first-campus-map.jpg'));
+          assert.equal(await viewer.locator('img').evaluate((img) => getComputedStyle(img).objectFit), 'contain');
+          await page.keyboard.press('Tab');
+          assert(await viewer.locator('button').evaluate((el) => el === document.activeElement));
+          if (method === 'escape') await page.keyboard.press('Escape');
+          else if (method === 'button') await viewer.getByRole('button', { name: '關閉圖片' }).click();
+          else await page.mouse.click(1, 1);
+          await page.locator('dialog.research-image-viewer').waitFor({ state: 'detached' });
+          assert(await trigger.evaluate((el) => el === document.activeElement));
+          assert.equal(await page.locator('html.research-image-open').count(), 0);
+        }
+        await page.evaluate(() => scrollTo(0, 0));
         assert.equal(await page.locator('a[href="mailto:jcyu@nkust.edu.tw"]').count(), 1);
-        assert.equal(await page.locator('#location a[href^="https://www.google.com/maps/search/"]').count(), 1);
+        assert.equal(await page.locator('#location a[href^="https://www.google.com/maps/"]').count(), 0);
       }
       if (file === 'members.html') {
         assert.equal(await page.locator('#masters article').count(),

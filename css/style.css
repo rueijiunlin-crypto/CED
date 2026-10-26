@@ -381,3 +381,60 @@ body > footer {
   outline: 3px solid var(--brand-600);
   outline-offset: 4px;
 }
+
+/* Shared image viewer for research figures and the campus map. */
+.research-image-open {
+  overflow: hidden;
+}
+
+.research-image-viewer {
+  box-sizing: border-box;
+  width: min(1100px, calc(100% - 24px));
+  max-width: calc(100% - 24px);
+  max-height: calc(100dvh - 24px);
+  padding: 20px;
+  border: 1px solid #cbd5e1;
+  border-radius: var(--radius);
+  color: var(--ink);
+  background: var(--bg);
+  font: inherit;
+  overflow: auto;
+}
+
+.research-image-viewer::backdrop {
+  background: rgba(15, 23, 42, 0.8);
+}
+
+.research-image-viewer figure {
+  margin: 16px 0 0;
+}
+
+.research-image-viewer img {
+  display: block;
+  width: 100%;
+  max-height: 75dvh;
+  object-fit: contain;
+}
+
+.research-image-viewer figcaption {
+  margin-top: 12px;
+  overflow-wrap: anywhere;
+}
+
+.research-image-close {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 8px 16px;
+  border: 1px solid var(--brand-600);
+  border-radius: 8px;
+  color: var(--brand-700);
+  background: var(--brand-50);
+  font: inherit;
+  cursor: pointer;
+}
+
+
+.contact-page .campus-map a {
+  display: block;
+  cursor: zoom-in;
+}
