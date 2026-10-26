@@ -7,6 +7,6 @@ if (trigger) {
   trigger.addEventListener('click', (event) => {
     if (event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
     event.preventDefault();
-    showImage(trigger.querySelector('img'), trigger, '校園地圖放大檢視');
+    showImage(trigger.querySelector('img'), trigger, '校園地圖放大檢視', { zoom: true });
   });
 }

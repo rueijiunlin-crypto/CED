@@ -184,7 +184,34 @@ for (const topic of research) {
           assert((await viewer.locator('img').getAttribute('src')).endsWith('image/campus/first-campus-map.jpg'));
           assert.equal(await viewer.locator('img').evaluate((img) => getComputedStyle(img).objectFit), 'contain');
           await page.keyboard.press('Tab');
-          assert(await viewer.locator('button').evaluate((el) => el === document.activeElement));
+          assert(await viewer.evaluate((el) => el.contains(document.activeElement)));
+          if (method === 'escape') {
+            const zoomIn = viewer.getByRole('button', { name: '放大', exact: true });
+            const zoomOut = viewer.getByRole('button', { name: '縮小', exact: true });
+            const reset = viewer.getByRole('button', { name: '還原', exact: true });
+            await page.waitForFunction(() => document.querySelector('.image-zoom-image')?.naturalWidth > 0);
+            const initial = await viewer.locator('img').boundingBox();
+            assert(await zoomOut.isDisabled());
+            await zoomIn.click();
+            const larger = await viewer.locator('img').boundingBox();
+            assert(Math.abs(larger.width / initial.width - 1.5) < 0.01);
+            assert.equal(await viewer.locator('.image-zoom-level').textContent(), '150%');
+            await zoomOut.click();
+            assert.equal(await viewer.locator('.image-zoom-level').textContent(), '100%');
+            for (let step = 0; step < 6; step++) await zoomIn.click();
+            assert.equal(await viewer.locator('.image-zoom-level').textContent(), '400%');
+            assert(await zoomIn.isDisabled());
+            assert(await viewer.locator('.image-zoom-viewport').evaluate((el) => {
+              el.scrollTo(el.scrollWidth, el.scrollHeight);
+              return el.scrollLeft > 0 || el.scrollTop > 0;
+            }));
+            assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+            await reset.click();
+            assert.equal(await viewer.locator('.image-zoom-level').textContent(), '100%');
+            assert(await viewer.locator('.image-zoom-viewport').evaluate((el) => el.scrollTop === 0 && el.scrollLeft === 0));
+            const restored = await viewer.locator('img').boundingBox();
+            assert(Math.abs(restored.width - initial.width) < 1);
+          }
           if (method === 'escape') await page.keyboard.press('Escape');
           else if (method === 'button') await viewer.getByRole('button', { name: '關閉圖片' }).click();
           else await page.mouse.click(1, 1);

@@ -438,3 +438,48 @@ body > footer {
   display: block;
   cursor: zoom-in;
 }
+
+.image-zoom-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.image-zoom-controls button {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 1px solid var(--brand-600);
+  border-radius: 8px;
+  background: var(--brand-50);
+  color: var(--brand-700);
+  font: inherit;
+  cursor: pointer;
+}
+.image-zoom-controls button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.image-zoom-level {
+  min-width: 48px;
+  text-align: center;
+}
+.image-zoom-hint {
+  color: var(--muted);
+  font-size: 14px;
+}
+.image-zoom-viewport {
+  height: min(65dvh, 650px);
+  overflow: auto;
+  overscroll-behavior: contain;
+  border: 1px solid #cbd5e1;
+  background: var(--brand-50);
+}
+.image-zoom-stage {
+  display: grid;
+  place-items: center;
+}
+.research-image-viewer .image-zoom-image {
+  max-width: none;
+  max-height: none;
+}
