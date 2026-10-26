@@ -149,9 +149,9 @@ for (const topic of research) {
       }
       if (file === 'contact.html') {
         assert.deepEqual(await page.locator('main h1, main h2').allTextContents(),
-          ['聯絡我們', '聯絡資訊', '實驗室位置與地圖']);
+          ['聯絡我們', '聯絡資訊', '實驗室位置']);
         const text = await page.locator('main').textContent();
-        for (const value of ['國立高雄科技大學', '同步工程設計實驗室', '第一校區 機電工程系'])
+        for (const value of ['國立高雄科技大學', '同步工程設計實驗室', '第一校區', '工學院', 'F360', 'F308', '32267'])
           assert(text.includes(value));
         assert.equal(await page.locator('a[href="mailto:jcyu@nkust.edu.tw"]').count(), 1);
         assert.equal(await page.locator('#location a[href^="https://www.google.com/maps/search/"]').count(), 1);
@@ -210,6 +210,33 @@ for (const topic of research) {
   await page.waitForFunction(() => document.querySelector('footer #y')?.textContent.length === 4);
   assert(await page.locator('#location').isVisible());
   assert(await page.locator('#location').evaluate((el) => el.getBoundingClientRect().top >= 60));
+  // Footer fills short viewports and follows long content without covering it.
+  for (const width of [1440, 768, 390, 320]) {
+    await page.setViewportSize({ width, height: 1200 });
+    for (const file of ['location.html', 'contact.html', 'index.html', 'members.html', 'areas.html', 'pi.html', 'pubs.html', 'news.html', detailFile(currentResearch[0])]) {
+      await open(file);
+      const layout = await page.evaluate(() => {
+        const footer = document.querySelector('footer');
+        const main = document.querySelector('main');
+        const f = footer.getBoundingClientRect();
+        const m = main.getBoundingClientRect();
+        return {
+          footerTop: f.top + scrollY, footerBottom: f.bottom + scrollY,
+          contentBottom: m.bottom + scrollY, height: innerHeight,
+          pageHeight: document.documentElement.scrollHeight,
+          position: getComputedStyle(footer).position,
+          fits: document.documentElement.scrollWidth <= innerWidth,
+        };
+      });
+      assert(!['fixed', 'absolute', 'sticky'].includes(layout.position), file);
+      assert(layout.footerTop >= layout.contentBottom, `${file}: footer overlaps main`);
+      assert(Math.abs(layout.footerBottom - layout.pageHeight) < 2, `${file}: footer not last`);
+      assert(layout.footerBottom >= layout.height - 1, `${file}: footer above viewport bottom`);
+      assert(layout.fits, `${file}: overflow at ${width}`);
+      if (file === 'location.html') assert(Math.abs(layout.footerBottom - layout.height) < 2, 'short-page footer');
+      if (file === 'members.html') assert(layout.footerTop > layout.height, 'long-page footer');
+    }
+  }
   // Ordering comes from ROC academic year and explicit within-year order.
   const expectedNames = ['林奕呈', '陳杰逸', '朱溢恩', '林睿鈞', '陳竑鈞', '蔡宸祐'];
   assert.deepEqual(expectedNames.map((name) => sourceMembers.find((m) => m.name === name).admissionYear),
@@ -679,7 +706,7 @@ for (const topic of research) {
     assert.equal(await page.getByText('共同指導教授', { exact: true }).count(), 0);
     assert.equal(await page.getByText('研究主題', { exact: true }).count(), 0);
     assert(!(await page.locator('main').textContent()).includes(profile.researchTopic));
-    assert.equal(await page.locator('.section-nav a[href="#masters"]').textContent(), '研究成員');
+    assert.equal(await page.locator('.section-nav a[href="#masters"]').textContent(), '研究生');
     for (const member of members.filter((member) => member.id !== profile.id)) {
       const item = page.locator(`#member-${member.id}`);
       assert.equal(await item.locator('.member-field').count(), member.id === graduate.id ? 1 : 0);

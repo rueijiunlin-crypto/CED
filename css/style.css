@@ -17,12 +17,15 @@
 * {
   box-sizing: border-box;
 }
-html,
-body {
-  height: 100%;
+html {
+  min-height: 100%;
 }
 
 body {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
   margin: 0;
   font-family: 'Noto Sans TC', ui-sans-serif, system-ui;
   color: var(--ink);
@@ -263,6 +266,7 @@ table {
 }
 th,
 td {
+  overflow-wrap: anywhere;
   padding: 10px 12px;
   border-bottom: 1px solid rgba(2, 8, 23, 0.08);
   text-align: left;
@@ -345,4 +349,15 @@ footer {
 }
 .contact-page #location {
   scroll-margin-top: 100px;
+}
+
+/* The main grows on short pages; long pages keep the footer in normal flow. */
+body > main {
+  flex: 1 0 auto;
+  width: 100%;
+  margin: 0 auto;
+}
+body > header,
+body > footer {
+  flex: 0 0 auto;
 }
