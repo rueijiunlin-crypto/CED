@@ -183,87 +183,106 @@
 }
 
 .members-page .member-card {
-  padding: 28px 30px;
+  padding: 16px 20px;
   border: 1px solid rgba(2, 8, 23, 0.05);
   border-radius: var(--radius);
   background: var(--card);
   box-shadow: var(--shadow-sm);
 }
-
 .members-page .member-card-with-image {
   display: grid;
-  grid-template-columns: 160px minmax(0, 1fr);
+  grid-template-columns: 96px minmax(0, 1fr);
   align-items: start;
-  gap: 28px;
+  gap: 20px;
 }
-
 .members-page .member-card-content {
   min-width: 0;
 }
-
+.members-page .member-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 14px;
+}
 .members-page .member-card h3 {
-  margin: 0 0 8px;
-  color: var(--ink);
-  font-size: clamp(20px, 2.1vw, 24px);
-  line-height: 1.65;
-}
-
-.members-page .member-card .badge {
-  margin-bottom: 8px;
-}
-
-.members-page .member-card > img {
-  width: 160px;
-  height: 120px;
   margin: 0;
+  color: var(--ink);
+  font-size: 22px;
+  line-height: 1.5;
 }
-
-.members-page .member-fields {
-  margin: 16px 0;
-}
-
-.members-page .member-field {
-  margin: 12px 0;
-}
-
-.members-page .member-field dt {
-  margin-bottom: 4px;
+.members-page .member-meta {
   color: var(--muted);
-  font-size: 13px;
+  font-size: 14px;
+  font-weight: 400;
 }
-
+.members-page .member-card > img {
+  width: 96px;
+  height: 96px;
+  margin: 0;
+  object-fit: cover;
+}
+.members-page .member-fields {
+  margin: 6px 0 0;
+}
+.members-page .member-field {
+  display: flex;
+  align-items: baseline;
+}
+.members-page .member-field dt {
+  flex: 0 0 auto;
+  color: var(--muted);
+}
+.members-page .member-field dt::after {
+  content: '：';
+}
 .members-page .member-field dd {
+  min-width: 0;
   margin: 0;
   overflow-wrap: anywhere;
 }
-
-.members-page .member-field:first-child dd {
-  color: var(--ink);
-  font-weight: 500;
+.members-page .member-research {
+  display: flex;
+  align-items: baseline;
+  margin-top: 6px;
 }
-
-.members-page .field-label {
-  margin-bottom: 6px;
+.members-page .member-research .field-label {
+  flex: 0 0 auto;
+  margin: 0;
+  font-size: inherit;
+  color: var(--muted);
 }
-
-.members-page .alumni-year summary {
-  color: var(--brand-700);
-  font-weight: 700;
+.members-page .member-research .research-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
 }
-
+.members-page .member-research li {
+  margin: 0;
+}
+.members-page .member-card .member-thesis {
+  margin: 6px 0 0;
+}
 @media (max-width: 540px) {
   .members-page .member-card {
-    padding: 22px 20px;
+    padding: 14px;
   }
-
   .members-page .member-card-with-image {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 16px;
+    grid-template-columns: 84px minmax(0, 1fr);
+    gap: 12px;
   }
-
   .members-page .member-card > img {
-    width: 112px;
+    width: 84px;
     height: 84px;
+  }
+  .members-page .member-card h3 {
+    font-size: 20px;
+  }
+  .members-page .member-field,
+  .members-page .member-research {
+    flex-wrap: wrap;
   }
 }
 

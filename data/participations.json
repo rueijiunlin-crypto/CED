@@ -21,5 +21,14 @@
         "語義分割"
       ]
     }
+  },
+  {
+    "id": "thinning-lin-zhi-en",
+    "researchId": "thinning-weeding-robot",
+    "memberId": "lin-zhi-en",
+    "role": "論文研究",
+    "thesis": {
+      "title": "基於視覺導航與疏苗決策演算法之溫室疏苗除草機器人系統設計與實現"
+    }
   }
 ]

@@ -93,40 +93,33 @@ function appendField(fields, label, value) {
   if (row) fields.append(row);
 }
 export function memberCard(member, model) {
-  const image = member.status === 'current' || member.photo
-    ? photo(member.photo, `${member.name}的照片`, true) : null;
+  const current = member.status === 'current';
+  const image = current ? photo(member.photo, `${member.name}的照片`, true) : null;
   const { el, content } = peopleCard(`member-${member.id}`, member.name, member.example, image);
-  // Directory labels are independent of research-detail participant labels.
-  let identity = memberIdentity(member);
-  if (member.status === 'current') {
-    identity = '研究生';
-    if (Number.isInteger(member.admissionYear) && member.admissionYear > 0)
-      identity += ` · ${member.admissionYear} 學年度入學`;
-  } else if (member.status === 'alumni' && ['master', 'phd'].includes(member.degree)) {
-    identity = `${member.degree === 'phd' ? '博士' : '碩士'}畢業生`;
+  const heading = node('div', 'member-heading');
+  heading.append(content.querySelector('h3'));
+  if (current && Number.isInteger(member.admissionYear) && member.admissionYear > 0)
+    heading.append(node('span', 'member-meta', `${member.admissionYear} 學年度入學`));
+  if (!current) {
+    const identity = member.degree === 'phd' ? '博士畢業生' : '碩士畢業生';
+    const year = Number.isInteger(member.graduationYear) ? `${member.graduationYear} 年畢業 · ` : '';
+    heading.append(node('span', 'member-meta', year + identity));
   }
-  if (member.status === 'current' || member.identity?.trim() || ['master', 'phd'].includes(member.degree))
-    content.append(node('p', 'member-meta', identity));
+  content.append(heading);
+  if (!current) {
+    for (const record of model.participations.filter((row) => row.memberId === member.id && row.thesis?.title?.trim()))
+      content.append(node('p', 'member-thesis', `${member.degree === 'phd' ? '博士' : '碩士'}論文：《${record.thesis.title}》`));
+    return el;
+  }
   const fields = node('dl', 'member-fields');
-  if (member.status === 'alumni' && member.researchFocus?.trim()) {
-    const row = node('div', 'member-field');
-    const value = node('dd');
-    const tags = node('ul', 'technology-tags');
-    for (const keyword of member.researchFocus.split('、').map((text) => text.trim()).filter(Boolean))
-      tags.append(node('li', '', keyword));
-    value.append(tags);
-    row.append(node('dt', '', '研究方向'), value);
-    fields.append(row);
-  } else appendField(fields, '研究方向', member.researchFocus);
-  const coAdvisors = [...new Set(model.participations
-    .filter((row) => row.memberId === member.id)
-    .flatMap((row) => row.thesis?.coAdvisors || [])
-    .map((name) => name.trim()).filter(Boolean))];
-  appendField(fields, '共同指導教授', coAdvisors.join('、'));
+  appendField(fields, '研究方向', member.researchFocus);
   if (fields.children.length) content.append(fields);
   const links = researchLinks(member, model);
-  if (links.children.length)
-    content.append(node('p', 'field-label', '相關研究'), links);
+  if (links.children.length) {
+    const row = node('div', 'member-research');
+    row.append(node('span', 'field-label', '相關研究：'), links);
+    content.append(row);
+  }
   return el;
 }
 export function groupCard(group, model) {
