@@ -30,7 +30,8 @@
     ],
     "example": false,
     "admissionYear": 115,
-    "admissionOrder": 2
+    "admissionOrder": 2,
+    "researchFocus": "待補充"
   },
   {
     "id": "chen-jie-yi",
@@ -41,7 +42,8 @@
     ],
     "example": false,
     "admissionYear": 114,
-    "admissionOrder": 1
+    "admissionOrder": 1,
+    "researchFocus": "待補充"
   },
   {
     "id": "cai-chen-you",
@@ -52,7 +54,8 @@
     ],
     "example": false,
     "admissionYear": 115,
-    "admissionOrder": 3
+    "admissionOrder": 3,
+    "researchFocus": "多感測器融合定位、數位孿生環境開發、虛實整合、導航演算法"
   },
   {
     "id": "zhu-yi-en",
@@ -63,7 +66,8 @@
     ],
     "example": false,
     "admissionYear": 114,
-    "admissionOrder": 2
+    "admissionOrder": 2,
+    "researchFocus": "虛實整合、導航演算法、避障演算法"
   },
   {
     "id": "lin-yi-cheng",
@@ -74,7 +78,8 @@
     ],
     "example": false,
     "admissionYear": 113,
-    "admissionOrder": 1
+    "admissionOrder": 1,
+    "researchFocus": "多感測器融合定位、數位孿生環境開發、強化學習、虛實整合、船舶動力系統、導航演算法"
   },
   {
     "id": "lin-zhi-en",

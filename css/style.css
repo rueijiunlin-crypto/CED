@@ -59,6 +59,7 @@ header {
 }
 
 .brand {
+  min-width: 0;
   display: flex;
   align-items: center;
   gap: 12px;
@@ -67,9 +68,13 @@ header {
 }
 
 .brand img {
-  width: 40px;
-  height: 40px;
-  border-radius: 8px;
+  width: 64px;
+  height: auto;
+  flex-shrink: 0;
+}
+
+.brand > div {
+  min-width: 0;
 }
 
 .brand .title {
@@ -277,33 +282,61 @@ thead th {
 
 /* ===================== 頁尾 ===================== */
 footer {
-  margin-top: 24px;
-  padding: 28px 0 60px;
+  margin-top: 20px;
+  padding: 16px 0;
   border-top: 1px solid rgba(2, 8, 23, 0.06);
   color: var(--muted);
 }
 
 .foot {
   display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: 16px;
-}
-
-.foot .logo {
-  display: flex;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
-  gap: 10px;
+  gap: 10px 20px;
+  font-size: 14px;
+  line-height: 1.45;
 }
 
 .foot img {
-  width: 44px;
-  height: 44px;
-  border-radius: 10px;
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+.foot-university {
+  grid-column: 1;
+}
+
+.foot-university img {
+  width: 230px;
+}
+
+.foot-copyright {
+  grid-column: 2;
+  text-align: right;
+}
+
+.foot-contact {
+  margin: 0 0 4px;
+}
+
+.foot-contact a {
+  color: var(--brand-700);
+  text-underline-offset: 3px;
+}
+
+.foot small {
+  font-size: 12px;
 }
 
 @media (max-width: 900px) {
   .foot {
     grid-template-columns: 1fr;
+  }
+  .foot-copyright {
+    grid-column: 1;
+    grid-row: auto;
+    text-align: left;
   }
 }
 

@@ -1,0 +1,55 @@
+[
+  {
+    "id": "national-project-2026",
+    "date": "2026-05-15",
+    "title": "專題團隊榮獲全國實務專題競賽第二名",
+    "type": "article",
+    "paragraphs": [
+      "同步工程設計實驗室專題團隊以「透過數位孿生和合成數據進行智慧除草與疏苗機器人的開發研究」，榮獲教育部「2026 年全國技專校院學生實務專題製作競賽暨成果展」機械與動力機械群第二名。",
+      "指導教師：余志成教授。獎狀日期為 2026 年 5 月 15 日。"
+    ],
+    "images": [
+      {
+        "src": "image/news/202605national2place.png",
+        "alt": "教育部 2026 年全國技專校院學生實務專題製作競賽暨成果展機械與動力機械群第二名獎狀",
+        "caption": "2026 年全國技專校院學生實務專題製作競賽暨成果展第二名獎狀。"
+      }
+    ],
+    "attachments": [
+      {
+        "url": "image/news/202605national2place.pdf",
+        "label": "查看獎狀（PDF）"
+      }
+    ]
+  },
+  {
+    "id": "project-exhibition-2025",
+    "date": "2025-12-19",
+    "title": "專題團隊榮獲校內成果發表第二、三名及商品化特別獎",
+    "type": "article",
+    "paragraphs": [
+      "同步工程設計實驗室專題團隊於 114 學年度第 1 學期、111 級學生實務專題期末成果發表中，榮獲第二名、第三名，並獲商品化特別獎。"
+    ],
+    "images": [
+      {
+        "src": "image/news/202512project.png",
+        "alt": "114 學年度第 1 學期 111 級學生實務專題期末成果發表得獎名單",
+        "caption": "校內專題成果發表得獎名單，紅框標示實驗室得獎團隊。"
+      }
+    ]
+  },
+  {
+    "id": "honorary-professor-2023",
+    "date": "2023-06-27",
+    "title": "余志成教授獲聘 112 年度榮譽特聘教授",
+    "type": "external",
+    "url": "https://irdnew.nkust.edu.tw/p/412-1010-9117.php"
+  },
+  {
+    "id": "teacher-award-2021",
+    "date": "2021-07-20",
+    "title": "余志成教授榮獲教育部 110 年師鐸獎",
+    "type": "external",
+    "url": "https://excellentteacher.moe.edu.tw/2021/teacher3_69.htm"
+  }
+]

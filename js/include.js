@@ -14,6 +14,9 @@ window.includesReady = new Promise((resolve) => {
     }
     const isInSubdir = /\/areas\//.test(location.pathname);
     const prefix = window.ROOT_PREFIX || (isInSubdir ? '../' : '');
+    document.querySelectorAll('img[data-src]').forEach((img) => {
+      img.setAttribute('src', prefix + img.getAttribute('data-src'));
+    });
     document.querySelectorAll('a[data-link]').forEach((a) => {
       a.setAttribute('href', prefix + a.getAttribute('data-link'));
     });

@@ -14,17 +14,7 @@
   margin-bottom: 20px;
 }
 .home-professor {
-  display: grid;
-  grid-template-columns: 200px minmax(0, 1fr);
-  align-items: center;
-  gap: 32px;
   padding: 28px;
-}
-.home-professor > img {
-  display: block;
-  width: 100%;
-  height: auto;
-  border-radius: 12px;
 }
 .home-professor h3 {
   margin: 0;
@@ -32,7 +22,7 @@
 }
 .home-professor .btn {
   display: inline-block;
-  margin-top: 8px;
+  margin-top: 16px;
 }
 .home-research-grid {
   display: grid;
@@ -79,15 +69,10 @@
   }
 }
 @media (max-width: 600px) {
-  .home-professor,
   .home-research-grid {
     grid-template-columns: minmax(0, 1fr);
   }
   .home-professor {
-    gap: 20px;
     padding: 20px;
-  }
-  .home-professor > img {
-    width: min(200px, 100%);
   }
 }

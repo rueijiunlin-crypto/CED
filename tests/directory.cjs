@@ -32,7 +32,7 @@ assert(sourceMembers.every((member) => !member.example));
 assert.deepEqual(members.filter((member) => member.status === 'current').map((member) => member.name),
   ['林睿鈞', '陳竑鈞', '陳杰逸', '蔡宸祐', '朱溢恩', '林奕呈']);
 for (const member of sourceMembers.filter((member) => !['lin-ruei-jiun', 'yan-jia-yuan'].includes(member.id))) {
-  for (const field of ['degree', 'grade', 'photo', 'researchTopic', 'researchFocus'])
+  for (const field of ['degree', 'grade', 'photo', 'researchTopic'])
     assert.equal(member[field], undefined);
 }
 const detailSectionCount = (topic) => (topic.sections || []).length +
@@ -64,6 +64,7 @@ for (const topic of research) {
     assert(topic.title.includes('範例'));
   }
   if (topic.image) assert(fs.existsSync(path.join(root, topic.image)));
+  if (topic.cardImage) assert(fs.existsSync(path.join(root, topic.cardImage)));
   for (const image of topic.gallery || []) assert(fs.existsSync(path.join(root, image.src)));
 }
 (async () => {
@@ -96,6 +97,8 @@ for (const topic of research) {
     await page.waitForFunction(
       () => document.querySelector('footer #y')?.textContent.length === 4,
     );
+    if (await page.locator('[data-news-list]').count())
+      await page.waitForSelector('[data-news-list] a');
     if (await page.locator('[data-directory]').count())
       await page.waitForFunction(
         () => document.querySelector('#directory-status')?.textContent === '',
@@ -139,40 +142,43 @@ for (const topic of research) {
     assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
     if ([1440, 390].includes(width)) await page.screenshot({ path: path.join(screenshotDir, `ced-pi-${width === 1440 ? 'desktop' : 'mobile'}.png`), fullPage: true });
   }
-  // Home uses only the five confirmed local images and existing detail routes.
+  // Home uses the hero and three project images; the professor card is text only.
   const homeProjects = [
-    ['mowing-robot', '割草機器人', '割草機.png'],
-    ['thinning-weeding-robot', '疏苗除草機器人', '書苗除草機器人.jpg'],
-    ['marine-trash-collection-vessel', '垃圾收集海漂船', '海漂船.jpg'],
+    ['mowing-robot', '割草機器人', '割草機器人.png'],
+    ['thinning-weeding-robot', '疏苗除草機器人', '疏苗除草機器人.png'],
+    ['marine-trash-collection-vessel', '垃圾收集海漂船', '海漂船.png'],
   ];
-  for (const filename of ['同步工程設計實驗室形象首頁.png', '教授照片.jpg', ...homeProjects.map((row) => row[2])])
+  for (const filename of ['同步工程設計實驗室形象首頁V2.png', ...homeProjects.map((row) => row[2])])
     assert(fs.existsSync(path.join(root, 'image/index', filename)));
   for (const width of [1440, 1024, 768, 390, 320]) {
     await page.setViewportSize({ width, height: 1000 });
     await open('index.html');
     await page.locator('main img').evaluateAll((images) => images.forEach((img) => img.loading = 'eager'));
     await page.waitForFunction(() => [...document.querySelectorAll('main img')].every((img) => img.complete && img.naturalWidth > 0));
-    assert.equal(await page.locator('main img').count(), 5);
+    assert.equal(await page.locator('main img').count(), 4);
     assert.equal(await page.locator('main img[src^="http"], main table, main a[href="pubs.html"]').count(), 0);
     assert.deepEqual(await page.locator('main section > .section-title h2').allTextContents(), ['指導教授', '研究領域', '最新消息']);
     const text = await page.locator('main').textContent();
     for (const removed of ['範例', '示範', '歷年研究模板', '期刊論文', '2025/09/01', '研究生徵才'])
       assert(!text.includes(removed));
-    assert.equal(await page.locator('.home-news').textContent().then((text) => text.trim()), '目前尚無最新消息。');
+    assert.equal(await page.locator('.home-news .news-list li').count(), 4);
+    assert(!(await page.locator('.home-news').textContent()).includes('目前尚無最新消息'));
     assert.equal(await page.locator('.home-professor h3').textContent(), '余志成特聘教授');
     assert((await page.locator('.home-professor').textContent()).includes('國立高雄科技大學 機電工程系'));
     assert.equal(await page.locator('.home-professor a').getAttribute('href'), 'pi.html');
-    for (const selector of ['.home-hero img', '.home-professor > img']) {
+    for (const selector of ['.home-hero img']) {
       assert(await page.locator(selector).evaluate((img) =>
         Math.abs(img.width / img.height - img.naturalWidth / img.naturalHeight) < 0.01));
     }
     const hero = await page.locator('.home-hero').boundingBox();
     const professor = await page.locator('main > section').first().boundingBox();
     assert(Math.abs(professor.y - hero.y - hero.height - 48) < 1);
-    const portrait = await page.locator('.home-professor > img').boundingBox();
+    assert.equal(await page.locator('.home-professor img').count(), 0);
     const biography = await page.locator('.home-professor > div').boundingBox();
-    if (width > 600) assert(biography.x > portrait.x + portrait.width);
-    else assert(biography.y >= portrait.y + portrait.height);
+    const professorButton = await page.locator('.home-professor > a').boundingBox();
+    assert.equal(await page.locator('.home-professor > a').textContent(), '查看指導教授介紹');
+    assert(Math.abs(professorButton.x - biography.x) < 1);
+    assert(professorButton.y >= biography.y + biography.height);
     assert.equal(await page.locator('.home-research-grid').evaluate((el) => getComputedStyle(el).gridTemplateColumns.split(' ').length), width > 900 ? 3 : width > 600 ? 2 : 1);
     assert.deepEqual(await page.locator('.home-research-card h3').allTextContents(), homeProjects.map((row) => row[1]));
     assert(await page.locator('.home-research-card img').evaluateAll((images) => images.every((img) => getComputedStyle(img).objectFit === 'contain')));
@@ -322,13 +328,20 @@ for (const topic of research) {
       if (file === 'areas.html') {
         assert.deepEqual(
           await page.locator('main > section:visible > h2').allTextContents(),
-          ['進行中的研究', '歷屆研究'],
+          ['進行中的研究'],
         );
         assert.equal(await page.locator('#current article').count(), 3);
+        for (const topic of currentResearch) {
+          const image = page.locator(`#research-${topic.id} .research-entry-image`);
+          assert.equal(await image.count(), 1);
+          assert.equal(await image.getAttribute('src'), new URL(topic.cardImage, base).href);
+        }
         assert.equal(
           await page.locator('#historical article').count(),
-          research.filter((topic) => topic.category === 'historical').length,
+          0,
         );
+        assert.equal(await page.locator('#historical').isVisible(), false);
+        assert.equal(await page.locator('.section-nav a[href="#historical"]').count(), 0);
         assert.equal(
           await page.locator('#current .badge, main > .sample-notice').count(),
           0,
@@ -498,7 +511,7 @@ for (const topic of research) {
         assert.equal(await page.locator('main h3').textContent(), topic.title);
       }
       assert.equal(await page.locator('main img').count(),
-        members.filter((member) => !member.example && member.status === 'current' && member.researchIds.includes(topic.id)).length + (topic.image ? 1 : 0) + (topic.gallery || []).filter((image) => image.src !== topic.image).length);
+        (topic.currentPeopleDisplay === 'names' ? 0 : members.filter((member) => !member.example && member.status === 'current' && member.researchIds.includes(topic.id)).length) + (topic.image ? 1 : 0) + (topic.gallery || []).filter((image) => image.src !== topic.image).length);
       assert.equal(
         await page
           .locator(
@@ -862,23 +875,24 @@ for (const topic of research) {
     assert.equal(await page.locator('.section-nav a[href="#masters"]').textContent(), '研究生');
     for (const member of members.filter((member) => member.id !== profile.id)) {
       const item = page.locator(`#member-${member.id}`);
-      assert.equal(await item.locator('.member-field').count(), member.id === graduate.id ? 1 : 0);
+      assert.equal(await item.locator('.member-field').count(), member.researchFocus ? 1 : 0);
       assert.equal(await item.locator('.research-links a').count(), 1);
     }
-    assert((await card.locator('img').getAttribute('src')).endsWith('member-placeholder.svg'));
-    const imageBox = await card.locator('img').boundingBox();
+    const columns = 1;
+    assert.equal(await page.locator('#masters .member-grid').evaluate((grid) => getComputedStyle(grid).gridTemplateColumns.split(' ').length), columns);
     const contentBox = await card.locator('.member-card-content').boundingBox();
-    assert.equal(imageBox.width, width > 540 ? 160 : 112);
-    assert(Math.abs(imageBox.width / imageBox.height - 4 / 3) < 0.01);
-    if (width > 540) {
-      assert(contentBox.x > imageBox.x + imageBox.width);
-      assert(Math.abs(contentBox.y - imageBox.y) < 1);
-    } else {
-      assert(contentBox.y >= imageBox.y + imageBox.height);
-      assert(Math.abs(contentBox.x - imageBox.x) < 1);
-    }
+    const relatedBox = await card.locator('.member-related').boundingBox();
+    assert(Math.abs(relatedBox.x + relatedBox.width - contentBox.x - contentBox.width) < 1);
+    assert.equal(await card.locator('.member-related').evaluate((element) => getComputedStyle(element).textAlign), 'right');
     assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
     const alumniCard = page.locator('#member-yan-jia-yuan');
+    for (const graduateCard of await page.locator('#alumni .member-card').all()) {
+      const content = await graduateCard.locator('.member-card-content').boundingBox();
+      const related = await graduateCard.locator('.member-related').boundingBox();
+      assert(Math.abs(related.x + related.width - content.x - content.width) < 1);
+      assert(Math.abs(related.y + related.height - content.y - content.height) < 1);
+      assert.equal(await graduateCard.locator('.member-related').evaluate((el) => getComputedStyle(el).textAlign), 'right');
+    }
     assert.equal(await alumniCard.locator('.member-meta').textContent(), '碩士畢業生');
     assert.deepEqual(await alumniCard.locator('.technology-tags li').allTextContents(),
       ['自主移動機器人', '空拍輔助建圖', '語義分割', '自主導航', '覆蓋路徑規劃']);
@@ -895,7 +909,7 @@ for (const topic of research) {
       assert.equal(await item.locator('.research-links a').count(), 1);
       if (!member.degree) {
         assert.equal(await item.locator('.member-meta').textContent(), `研究生 · ${member.admissionYear} 學年度入學`);
-        assert.equal(await item.locator('.member-fields').count(), 0);
+        assert.equal(await item.locator('.member-field dd').textContent(), member.researchFocus);
       }
     }
     if ([1440, 390].includes(width)) {
@@ -1037,7 +1051,7 @@ for (const topic of research) {
     const history = page.locator('[data-people="alumni"]');
     assert.equal(await history.locator('a[data-member-link]').textContent(), '林志恩');
     assert((await history.textContent()).includes('應屆畢業成員'));
-    assert((await history.textContent()).includes('2026 年畢業'));
+    assert(!(await history.textContent()).includes('2026 年畢業'));
     assert.equal(await history.locator('img, .research-thesis, .thesis-keywords').count(), 0);
     assert(!(await history.textContent()).includes('碩士'));
     assert(!(await history.textContent()).includes('研究方向'));
@@ -1088,13 +1102,11 @@ for (const topic of research) {
     const alumni = page.locator('[data-people="alumni"]');
     assert.equal(await current.locator('a[data-member-link]').textContent(), currentMember.name);
     assert(!(await current.textContent()).includes(currentMember.introduction));
-    assert.deepEqual(await current.locator('p').allTextContents(), [
-      '碩士研究生',
-      '研究方向：視覺語言模型、無人機視覺感知、空地協作自主系統',
-    ]);
-    assert((await current.textContent()).includes('碩士研究生'));
+    assert.equal(await current.locator('p, img').count(), 0);
+    assert.deepEqual(await current.locator('.research-person').allTextContents(), [currentMember.name]);
     assert.equal(await alumni.locator('a[data-member-link]').textContent(), alumnus.name);
-    for (const value of ['2026 年畢業', '碩士畢業生', thesis.title,
+    assert(!(await alumni.textContent()).includes('2026 年畢業'));
+    for (const value of ['碩士畢業生', thesis.title,
       '空拍輔助建圖、語義感知與自主割草機器人導航整合。'])
       assert((await alumni.textContent()).includes(value));
     assert.equal(await alumni.locator('.research-thesis a').count(), 0);
@@ -1143,12 +1155,7 @@ for (const topic of research) {
     }
     assert(!(await page.locator('main').textContent()).includes('研究關注議題'));
     assert(!(await page.locator('main').textContent()).includes('相關參考文獻'));
-    await current.locator('img').evaluate((image) => image.loading = 'eager');
-    await page.waitForFunction(() => {
-      const image = document.querySelector('[data-people="current"] img');
-      return image?.complete && image.naturalWidth > 0;
-    });
-    assert((await current.locator('img').getAttribute('src')).endsWith('member-placeholder.svg'));
+    assert.equal(await current.locator('img').count(), 0);
     assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
     if ([1440, 390].includes(width)) {
       await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }));
@@ -1186,7 +1193,7 @@ for (const topic of research) {
   assert(!(await page.locator(`#member-${currentMember.id}`).textContent()).includes('主資料介紹測試'));
   assert.equal(sourceMembers.find((member) => member.id === currentMember.id).introduction, currentMember.introduction);
   await open(detailFile(mowing));
-  assert((await page.locator('[data-people="alumni"]').textContent()).includes('2027 年畢業'));
+  assert(!(await page.locator('[data-people="alumni"]').textContent()).includes('2027 年畢業'));
   await page.unroute('**/data/members.json');
   await page.route('**/data/members.json', (route) => {
     const rows = structuredClone(sourceMembers);
@@ -1211,8 +1218,9 @@ for (const topic of research) {
   ] }));
   await open(detailFile(otherProject));
   const peopleText = await page.locator('[data-people="current"]').textContent();
-  for (const value of [currentMember.name, '關聯方向測試'])
+  for (const value of [currentMember.name])
     assert(peopleText.includes(value));
+  assert(!peopleText.includes('關聯方向測試'));
   assert(!peopleText.includes('共同研究'));
   assert(!peopleText.includes('研究年份'));
   assert(!peopleText.includes(currentMember.introduction));
@@ -1398,7 +1406,7 @@ for (const topic of research) {
     await open(file);
     assert.equal(
       await page.locator('.empty-state').count(),
-      2,
+      file === 'members.html' ? 2 : 1,
     );
   }
   assert.deepEqual(errors, []);

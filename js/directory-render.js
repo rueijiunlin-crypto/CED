@@ -96,6 +96,7 @@ export function memberCard(member, model) {
   const image = member.status === 'current' || member.photo
     ? photo(member.photo, `${member.name}的照片`, true) : null;
   const { el, content } = peopleCard(`member-${member.id}`, member.name, member.example, image);
+  if (member.status === 'current') el.classList.add('member-card-current');
   // Directory labels are independent of research-detail participant labels.
   let identity = memberIdentity(member);
   if (member.status === 'current') {
@@ -125,8 +126,11 @@ export function memberCard(member, model) {
   appendField(fields, '共同指導教授', coAdvisors.join('、'));
   if (fields.children.length) content.append(fields);
   const links = researchLinks(member, model);
-  if (links.children.length)
-    content.append(node('p', 'field-label', '相關研究'), links);
+  if (links.children.length) {
+    const related = node('div', 'member-related');
+    related.append(node('p', 'field-label', '相關研究'), links);
+    content.append(related);
+  }
   return el;
 }
 export function groupCard(group, model) {
@@ -194,6 +198,8 @@ function researchParticipants(topic, model) {
     if (!members.length) continue;
     const block = node('section', 'research-detail-section');
     block.dataset.people = status;
+    if (status === 'current' && topic.currentPeopleDisplay === 'names')
+      block.classList.add('research-people-names');
     const people = node('ul', 'people-links research-participants');
     block.append(node('h2', '', status === 'current'
       ? '現階段研究人員' : '歷屆研究生與論文'), people);
@@ -208,11 +214,13 @@ function researchParticipants(topic, model) {
       name.dataset.memberLink = '';
       heading.append(name);
       content.append(heading);
+      if (status === 'current' && topic.currentPeopleDisplay === 'names') {
+        person.append(content);
+        people.append(person);
+        continue;
+      }
       if (member.example) content.append(node('span', 'badge', '範例資料'));
-      const labels = [memberIdentity(member)];
-      if (status === 'alumni' && member.graduationYear)
-        labels.push(`${member.graduationYear} 年畢業`);
-      content.append(node('p', 'member-meta', labels.join(' · ')));
+      content.append(node('p', 'member-meta', memberIdentity(member)));
       if (status === 'current' && record?.focus?.trim())
         content.append(node('p', '', `研究方向：${record.focus}`));
       if (status === 'alumni' && record?.contribution?.trim())
@@ -344,7 +352,7 @@ export function researchListCard(topic) {
   if (topic.example) meta.append(node('span', 'badge', '範例資料'));
   entry.append(meta, node('h3', '', topic.title));
   if (topic.summary?.trim()) entry.append(node('p', 'muted', topic.summary));
-  const image = researchPhoto(topic.image, `${topic.title}代表圖片`);
+  const image = researchPhoto(topic.cardImage || topic.image, `${topic.title}代表圖片`);
   if (image) {
     entry.classList.add('research-entry-with-image');
     image.classList.add('research-entry-image');

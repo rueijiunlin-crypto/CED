@@ -1,6 +1,7 @@
 <!doctype html>
 <html lang="zh-Hant">
   <head>
+    <link rel="icon" type="image/x-icon" href="image/CEDicon.ico?v=symbol" />
     <meta charset="utf-8" />
     <meta
       name="viewport"
@@ -20,31 +21,19 @@
       href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700;900&display=swap"
       rel="stylesheet"
     />
-    <link
-      rel="stylesheet"
-      href="css/style.css"
-    />
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="css/news.css" />
   </head>
   <body>
     <div data-include="partials/header.html"></div>
-
-    <main class="wrap hero">
-      <div class="section-title">
-        <h2>最新消息（完整）</h2>
-      </div>
-      <ul class="news">
-        <li>
-          <time>2025/09/01</time>
-          <span>本實驗室 CED 研究生徵才（112-1）。</span>
-        </li>
-        <li><time>2025/07/20</time> <span>恭賀論文獲期刊錄用。</span></li>
-        <li><time>2025/06/27</time> <span>參與產學合作計畫啟動。</span></li>
-        <li><time>2025/05/03</time> <span>學生參賽獲獎。</span></li>
-      </ul>
+    <main class="wrap news-page">
+      <div class="section-title"><h1>最新消息</h1></div>
+        <ul class="news news-list" data-news-list aria-live="polite"><li>消息載入中…</li></ul>
+          <noscript>請啟用 JavaScript 以查看最新消息。</noscript>
     </main>
-
     <div data-include="partials/footer.html"></div>
     <script src="js/include.js"></script>
     <script src="js/script.js"></script>
+    <script type="module" src="js/news.js"></script>
   </body>
 </html>

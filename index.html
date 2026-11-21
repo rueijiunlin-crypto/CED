@@ -1,6 +1,7 @@
 <!doctype html>
 <html lang="zh-Hant">
   <head>
+    <link rel="icon" type="image/x-icon" href="image/CEDicon.ico?v=symbol" />
     <meta charset="utf-8" />
     <meta
       name="viewport"
@@ -25,6 +26,7 @@
       href="css/style.css"
     />
     <link rel="stylesheet" href="css/home.css" />
+    <link rel="stylesheet" href="css/news.css" />
   </head>
   <body>
     <div data-include="partials/header.html"></div>
@@ -41,14 +43,12 @@
           <h2 id="home-professor-title">指導教授</h2>
         </div>
         <div class="card home-professor">
-          <img src="image/index/教授照片.jpg" width="266" height="400"
-            loading="lazy" alt="余志成教授" />
           <div>
             <h3>余志成特聘教授</h3>
             <p class="muted">國立高雄科技大學 機電工程系</p>
             <p>研究專長涵蓋智慧服務型機器人、品質最佳化設計、導光板設計與應用、同步工程設計，以及微感測器設計與製造。</p>
-            <a class="btn ghost" href="pi.html">查看完整介紹</a>
           </div>
+          <a class="btn ghost" href="pi.html">查看指導教授介紹</a>
         </div>
       </section>
 
@@ -59,17 +59,17 @@
         </div>
         <div class="home-research-grid">
           <a class="card home-research-card" href="areas/research.html?id=mowing-robot">
-            <img src="image/index/割草機.png" width="764" height="1017"
+            <img src="image/index/割草機器人.png" width="1448" height="1086"
               loading="lazy" alt="割草機器人設備" />
             <h3>割草機器人</h3>
           </a>
           <a class="card home-research-card" href="areas/research.html?id=thinning-weeding-robot">
-            <img src="image/index/書苗除草機器人.jpg" width="518" height="540"
+            <img src="image/index/疏苗除草機器人.png" width="1448" height="1086"
               loading="lazy" alt="疏苗除草機器人設備" />
             <h3>疏苗除草機器人</h3>
           </a>
           <a class="card home-research-card" href="areas/research.html?id=marine-trash-collection-vessel">
-            <img src="image/index/海漂船.jpg" width="910" height="693"
+            <img src="image/index/海漂船.png" width="1448" height="1086"
               loading="lazy" alt="垃圾收集海漂船設備" />
             <h3>垃圾收集海漂船</h3>
           </a>
@@ -82,7 +82,8 @@
           <a class="more" href="news.html">查看更多</a>
         </div>
         <div class="card home-news">
-          <p class="muted">目前尚無最新消息。</p>
+        <ul class="news news-list" data-news-list aria-live="polite"><li>消息載入中…</li></ul>
+          <noscript>請啟用 JavaScript 以查看最新消息。</noscript>
         </div>
       </section>
     </main>
@@ -90,5 +91,6 @@
     <div data-include="partials/footer.html"></div>
     <script src="js/include.js"></script>
     <script src="js/script.js"></script>
+    <script type="module" src="js/news.js"></script>
   </body>
 </html>

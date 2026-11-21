@@ -91,8 +91,10 @@ try {
     }
   } else {
     for (const category of ['current', 'historical']) {
+      const container = section(category);
+      if (!container || container.closest('section')?.hidden) continue;
       fillGrid(
-        section(category),
+        container,
         model.research.filter((r) => r.category === category),
         (r) => researchListCard(r),
         'research-list',

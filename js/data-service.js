@@ -85,6 +85,8 @@ async function fetchCollection(name) {
       )) throw new Error('participations: invalid thesis');
     }
     if (name === 'research') {
+      if (row.currentPeopleDisplay !== undefined && !['names', 'details'].includes(row.currentPeopleDisplay))
+        throw new Error('research: invalid currentPeopleDisplay');
       if (!validImages(row.gallery)) throw new Error('research: invalid gallery');
       if (row.references !== undefined && (
         !Array.isArray(row.references) || row.references.some((reference) =>
@@ -92,7 +94,7 @@ async function fetchCollection(name) {
           (reference.url !== undefined && typeof reference.url !== 'string'),
         )
       )) throw new Error('research: invalid references');
-      for (const field of ['summary', 'introduction', 'field', 'status', 'image']) {
+      for (const field of ['summary', 'introduction', 'field', 'status', 'image', 'cardImage']) {
         if (row[field] !== undefined && typeof row[field] !== 'string')
           throw new Error(`research: invalid ${field}`);
       }

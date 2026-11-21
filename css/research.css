@@ -133,6 +133,30 @@
   margin: 8px 0;
 }
 
+.research-page .research-people-names {
+  margin-top: 20px;
+  padding-top: 16px;
+}
+
+.research-page .research-people-names .research-participants {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px 24px;
+  margin: 8px 0 0;
+}
+
+.research-page .research-people-names .research-person {
+  padding: 0;
+  margin: 0;
+  max-width: 100%;
+}
+
+.research-page .research-people-names .research-person h3 {
+  margin: 0;
+  line-height: 1.5;
+}
+
 .research-page .research-person-with-photo {
   display: grid;
   grid-template-columns: 96px minmax(0, 1fr);

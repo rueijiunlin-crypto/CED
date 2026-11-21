@@ -29,7 +29,9 @@
           "機構配置、作業流程與使用安全之間的整合。"
         ]
       }
-    ]
+    ],
+    "cardImage": "image/index/疏苗除草機器人.png",
+    "currentPeopleDisplay": "names"
   },
   {
     "id": "marine-trash-collection-vessel",
@@ -61,7 +63,9 @@
           "水面作業條件與載具操作安全。"
         ]
       }
-    ]
+    ],
+    "cardImage": "image/index/海漂船.png",
+    "currentPeopleDisplay": "names"
   },
   {
     "id": "mowing-robot",
@@ -105,7 +109,9 @@
         "alt": "空拍影像與語義分割結果對照",
         "caption": "環境感知成果｜來源：顏嘉源（2026）碩士論文相關研究素材。"
       }
-    ]
+    ],
+    "cardImage": "image/index/割草機器人.png",
+    "currentPeopleDisplay": "names"
   },
   {
     "id": "concurrent",

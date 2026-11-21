@@ -220,3 +220,19 @@ CHROMIUM_PATH=/usr/bin/chromium node tests/directory.cjs
 測試亦涵蓋全部研究的共用模板、九個舊網址轉址、無 `detailUrl` 的 JSON 測試研究、選填欄位、參數驗證、安全文字與雙向人員關聯。截圖預設存於作業系統暫存目錄，可用 `CED_SCREENSHOT_DIR` 指定已存在的輸出目錄。可設定 `CED_TEST_BASE=http://127.0.0.1:8000/CED/` 驗證子路徑部署。
 
 圖片擴充測試使用 Playwright 暫時攔截的 JSON 與 SVG 圖形，涵蓋多圖、圖說、段落順序、架構圖完整比例、照片縮圖與原圖、失敗清理、欄位型別、安全網址、鍵盤焦點與手機觸控；正式 `data/research.json` 不加入測試內容。
+
+## 最新消息
+
+`data/news.json` 集中管理首頁與最新消息列表。欄位為唯一 `id`、`date`（YYYY-MM-DD）、`title`、`type`（`article` 或 `external`）及 `url`。站內文章可包含 `paragraphs`、`images`（`src`、`alt`、選填 `caption`）與 `attachments`（`url`、`label`）。外部消息直接連往 HTTPS 官方頁面，不另建詳細頁。
+
+`js/news-service.js` 處理資料讀取與驗證；未來串接後端時，在此替換資料來源。`js/news.js` 使用安全 DOM API 渲染列表與共用文章內容；所有站內消息統一使用 `news-detail.html?id=消息ID`，不須為每則消息建立 HTML。文章的 `url` 可省略，由 ID 自動產生；外部連結的 `url` 必填。消息標題、圖片及附件連結以新分頁開啟，並使用 `noopener noreferrer`。後端可沿用此資料介面管理文章與附件；目前未建立 API、資料庫或管理介面。
+
+本機啟動網站後，執行 `node tests/news.cjs` 驗證消息。`CED_TEST_BASE` 可指定含子路徑的網站根網址，`CHROMIUM_PATH` 可指定已安裝瀏覽器。
+
+## 共用標誌素材
+
+頁首使用 `image/CEDicon-transparent.png`；分頁圖示使用 `image/CEDicon.ico`。頁尾左側保留高科大校徽與校名，右側顯示實驗室電話 `07-6011000 #32267` 及版權資訊。頁尾的 `image/nkust-logo.png` 為高科大官方透明校徽與校名原檔，未重繪或變形。來源：https://www.nkust.edu.tw/p/412-1000-3248.php ，原圖：https://www.nkust.edu.tw/var/file/0/1000/img/513/182513897.png 。共用圖片透過 `data-src` 由 `js/include.js` 解析站內相對路徑。
+
+研究的選填 `cardImage` 指定總覽卡片圖片，未提供時沿用 `image`。三項進行中研究的卡片共用首頁圖片檔案；`image` 與 `gallery` 仍管理研究詳細頁的原有照片。
+
+研究的選填 `currentPeopleDisplay: "names"` 讓詳細頁現階段研究人員僅顯示姓名連結；預設 `details` 保留身分與研究方向，歷屆成員不受影響。目前三項進行中研究皆使用姓名模式，姓名橫向排列並依可用寬度自動換行。
